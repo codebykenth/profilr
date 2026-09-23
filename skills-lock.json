@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "anti-slop-design": {
+      "source": "kjaylee/misskim-skills",
+      "sourceType": "github",
+      "skillPath": "skills/anti-slop-design/SKILL.md",
+      "computedHash": "f9c24be7f9c372118cd7a19fe9e4691c53169aff50fe924787a02e92affa2c74"
+    },
+    "design-taste-frontend": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "computedHash": "899b84384f74f540ea5284d9b2e9234e050998b42eacc805410b518d4226c0b3"
+    },
+    "redesign-existing-projects": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/redesign-skill/SKILL.md",
+      "computedHash": "47eced3e960a2c961d3cbee11fa1216264f589344b586a5cbd03967cd6b9c54b"
+    }
+  }
+}
