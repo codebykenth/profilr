@@ -1,4 +1,8 @@
 /* Header / App Bar */
+:root {
+    --header-height: 64px;
+}
+
 .app-header {
     height: var(--header-height);
     background: rgba(10, 10, 10, 0.85);
@@ -155,7 +159,8 @@
 /* Left Panel: Step Navigation & Form Configurator */
 .builder-panel-left {
     flex: 1.15;
-    max-width: 58%;
+    max-width: min(58%, 920px);
+    min-width: 0;
     display: flex;
     flex-direction: column;
     background: var(--bg-primary);
@@ -356,8 +361,10 @@
 /* Step Footer Navigation */
 .step-footer-nav {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     margin-top: 32px;
     padding-top: 18px;
     border-top: 1px solid var(--border);
@@ -479,6 +486,7 @@
 
 .skills-search-input {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: none;
     outline: none;
@@ -837,7 +845,7 @@
 /* Right Panel: Sticky Live Preview */
 .builder-panel-right {
     flex: 1;
-    max-width: 42%;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     background: var(--bg-secondary);
@@ -1019,7 +1027,7 @@
     }
     .builder-panel-right {
         max-width: 100%;
-        min-height: 600px;
+        min-height: 440px;
     }
 }
 
@@ -1283,6 +1291,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 8px;
     font-size: 15px;
     font-weight: 700;
@@ -1978,5 +1987,153 @@
     font-size: 14px;
     font-weight: 600;
     border-radius: 8px;
+}
+
+/* ── Responsive refinements ── */
+
+/* Header: progressively compact on smaller screens */
+@media (max-width: 1100px) {
+    .app-header {
+        padding: 10px 16px;
+    }
+}
+
+@media (max-width: 900px) {
+    .app-header {
+        gap: 12px;
+    }
+    .app-title-group .app-badge:not(#header-user-badge) {
+        display: none;
+    }
+    .step-tab-btn {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        height: auto;
+    }
+    .step-content-scroll {
+        padding: 20px 16px;
+    }
+    .preview-stage-scroll {
+        padding: 16px;
+    }
+    .onboarding-card {
+        padding: 28px 20px;
+    }
+    .preview-top-bar {
+        padding: 8px 12px;
+    }
+    .preview-tab-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 640px) {
+    .app-header {
+        flex-wrap: wrap;
+        padding: 10px 12px;
+        gap: 8px;
+    }
+    .header-left {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .header-right {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+    .back-link {
+        font-size: 0;
+        padding: 6px 8px;
+    }
+    .app-title-group {
+        gap: 6px;
+    }
+    .status-pill {
+        font-size: 0;
+        gap: 4px;
+    }
+    .header-right .btn {
+        font-size: 0;
+        gap: 4px;
+        padding: 6px 9px;
+    }
+
+    .step-content-scroll {
+        padding: 16px 12px;
+    }
+    .preview-stage-scroll {
+        padding: 12px;
+    }
+    .step-tab-btn .step-num {
+        display: none;
+    }
+
+    .step-footer-nav {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .step-footer-nav .btn {
+        width: 100%;
+    }
+
+    .host-input-group {
+        flex-wrap: wrap;
+    }
+    .host-input-group .form-input {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .custom-item-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+    .custom-item-row .prefix-input {
+        width: 100%;
+        text-align: left;
+    }
+
+    .custom-tech-header-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .project-card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .github-preview-box {
+        padding: 20px 14px;
+    }
+    .raw-markdown-area {
+        padding: 14px;
+    }
+
+    .reset-modal-card {
+        padding: 24px;
+    }
+    .onboarding-input-group .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-header {
+        padding: 8px 10px;
+    }
+    .header-right {
+        justify-content: flex-start;
+    }
+    .deploy-decision-head {
+        flex-wrap: wrap;
+    }
 }
 

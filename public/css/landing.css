@@ -80,6 +80,30 @@ body {
     color: var(--text-primary);
 }
 
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 12px 16px;
+    }
+    .nav-links {
+        gap: 16px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-container {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+    .nav-links {
+        gap: 12px;
+    }
+    .nav-brand {
+        gap: 8px;
+        font-size: 14px;
+    }
+}
+
 /* Buttons */
 .btn {
     display: inline-flex;
@@ -140,6 +164,27 @@ body {
     }
 }
 
+@media (max-width: 640px) {
+    .hero-split {
+        padding: 48px 16px;
+        gap: 32px;
+    }
+    .hero-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-split {
+        padding: 40px 12px;
+        gap: 28px;
+    }
+    .hero-content h1 {
+        font-size: 36px;
+    }
+}
+
 .hero-content h1 {
     text-wrap: balance;
     font-family: var(--font-display);
@@ -162,6 +207,7 @@ body {
 
 .hero-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 32px;
 }
@@ -231,6 +277,19 @@ body {
     min-height: 400px;
 }
 
+@media (max-width: 640px) {
+    .showcase-preview-body {
+        padding: 20px;
+        min-height: 300px;
+    }
+    .showcase-header {
+        padding: 10px 12px;
+    }
+    .showcase-tab {
+        padding: 6px 10px;
+    }
+}
+
 /* Features Alternating Layout */
 .section {
     padding: 96px 24px;
@@ -266,6 +325,22 @@ body {
     }
     .feature-row.reverse {
         direction: ltr;
+    }
+}
+
+@media (max-width: 768px) {
+    .section {
+        padding: 64px 16px;
+    }
+    .feature-row {
+        gap: 32px;
+        margin-bottom: 64px;
+    }
+}
+
+@media (max-width: 480px) {
+    .section {
+        padding: 48px 12px;
     }
 }
 
@@ -305,6 +380,7 @@ body {
     font-size: 14px;
     color: var(--text-secondary);
     width: 100%;
+    overflow-x: auto;
 }
 
 .code-block code {
@@ -474,6 +550,13 @@ body {
         flex-direction: column;
         gap: 16px;
         align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .site-footer {
+        padding: 24px 16px;
+        margin-top: 48px;
     }
 }
 
