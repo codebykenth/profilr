@@ -1339,6 +1339,15 @@ body {
     font-weight: 500;
 }
 
+.reorder-chip-inactive {
+    opacity: 0.45;
+    border-style: dashed;
+}
+
+.reorder-visibility-btn {
+    font-size: 13px;
+}
+
 /* Community & Vercel Dedicated Hosting Styles */
 .deploy-decision-box {
     background: var(--bg-card);
@@ -1356,15 +1365,38 @@ body {
 }
 
 .deploy-decision-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     margin-bottom: 8px;
     background: var(--bg-secondary);
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .deploy-decision-item:last-child {
     margin-bottom: 0;
+}
+
+.deploy-decision-item:hover {
+    border-color: var(--accent, #3b82f6);
+    background: var(--bg-card);
+}
+
+.deploy-decision-item:focus-visible {
+    outline: 2px solid var(--accent, #3b82f6);
+    outline-offset: 2px;
+}
+
+.deploy-decision-item.active {
+    border-color: var(--accent, #3b82f6);
+    background: var(--accent-dark, rgba(59, 130, 246, 0.12));
+    box-shadow: 0 0 0 1px var(--accent, #3b82f6);
 }
 
 .deploy-decision-head {

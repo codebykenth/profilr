@@ -120,6 +120,14 @@
                         </div>
                     </div>
 
+                    <div class="form-group" id="sections-order-container" style="margin-bottom: 20px;">
+                        <label class="form-label">
+                            <span>README Section Order</span>
+                            <span class="hint">Click &larr; &rarr; to reorder sections in your README preview. Use 👁 to hide/show an add-on section. Dimmed chips are hidden (no content / turned off).</span>
+                        </label>
+                        <div class="reorder-strip" id="sections-reorder-strip"></div>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" for="config-username">
@@ -696,33 +704,13 @@
 
                     <div class="deploy-decision-box">
                         <div class="deploy-decision-title">🤔 Which option should I pick?</div>
-                        <div class="deploy-decision-item">
+                        <button type="button" class="deploy-decision-item active" id="btn-mode-community" onclick="setHostMode('community')">
                             <div class="deploy-decision-head">⚡ Instant Copy-Paste <span class="deploy-decision-badge">Best for most people</span></div>
                             <div class="deploy-decision-text">Zero setup. Copy the Markdown and paste it into your profile — widgets load from public community CDNs using your username. Choose this unless you've already deployed your own instance.</div>
-                        </div>
-                        <div class="deploy-decision-item">
+                        </button>
+                        <button type="button" class="deploy-decision-item" id="btn-mode-custom" onclick="setHostMode('custom')">
                             <div class="deploy-decision-head">▲ My Deployed Instance <span class="deploy-decision-badge rec">Advanced</span></div>
                             <div class="deploy-decision-text">You must fork &amp; deploy your own copy to Vercel <em>first</em>, then paste its URL below. Unlocks private-repo stats, your own GitHub API quota, and drops the third-party dependency.</div>
-                        </div>
-                    </div>
-
-                    <div class="host-mode-toggle">
-                        <button type="button" class="host-mode-btn active" id="btn-mode-community" onclick="setHostMode('community')">
-                            <span style="font-size: 22px;">⚡</span>
-                            <div>
-                                <div style="font-weight: 700; font-size: 14px;">Instant Copy-Paste (Free CDNs)</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">0 server load &bull; Ready to use immediately</div>
-                            </div>
-                            <span class="host-mode-badge demo">Free CDNs</span>
-                        </button>
-
-                        <button type="button" class="host-mode-btn" id="btn-mode-custom" onclick="setHostMode('custom')">
-                            <span style="font-size: 22px;">▲</span>
-                            <div>
-                                <div style="font-weight: 700; font-size: 14px;">My Deployed Instance (Vercel)</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">Requires a fork &amp; deployment first</div>
-                            </div>
-                            <span class="host-mode-badge rec">Advanced</span>
                         </button>
                     </div>
 
@@ -975,6 +963,7 @@
                 languages: true,
                 streak: true
             },
+            sectionsOrder: ['bio', 'typing', 'visitor', 'about', 'socials', 'tech', 'projects', 'support', 'snake', 'trophies', 'quotes', 'analytics'],
             socialsOrder: ['linkedin', 'twitter', 'youtube', 'discord', 'medium', 'devto', 'hashnode', 'stackoverflow', 'leetcode', 'instagram', 'twitch', 'kaggle', 'website', 'email'],
             customBio: [],
             customTechBadges: [],
@@ -1105,6 +1094,9 @@
             if (key === 'snake') {
                 return `https://raw.githubusercontent.com/${user}/${user}/output/github-contribution-grid-snake.svg`;
             }
+            if (key === 'trophies') {
+                return `https://github-profile-trophy.screw-hand.vercel.app/?username=${user}&theme=radical&no-frame=false&no-bg=false&margin-w=4`;
+            }
             return '';
         }
 
@@ -1142,6 +1134,82 @@
             updateUI();
         }
 
+        const SECTION_LABELS = {
+            bio: 'Tagline',
+            typing: 'Typing SVG',
+            visitor: 'Visitor Count',
+            about: 'About Me',
+            socials: 'Connect',
+            tech: 'Tech Stack',
+            projects: 'Projects',
+            support: 'Support',
+            snake: 'Snake',
+            trophies: 'Trophies',
+            quotes: 'Quotes',
+            analytics: 'Analytics'
+        };
+
+        // Add-on-backed sections that can be hidden from the section order strip
+        const SECTION_VISIBILITY_TOGGLES = {
+            visitor: 'visitorCount',
+            snake: 'snake',
+            trophies: 'trophies',
+            quotes: 'quotes',
+        };
+
+        // Section keys that rendered into the live preview on the last render
+        let renderedSectionKeys = new Set();
+
+        function normalizeSectionsOrder() {
+            const defaults = Object.keys(SECTION_LABELS);
+            const saved = Array.isArray(state.sectionsOrder) ? state.sectionsOrder : [];
+            const merged = saved.filter(key => defaults.includes(key));
+            defaults.forEach(key => {
+                if (!merged.includes(key)) merged.push(key);
+            });
+            state.sectionsOrder = merged;
+        }
+
+        function moveSection(key, direction) {
+            normalizeSectionsOrder();
+            const idx = state.sectionsOrder.indexOf(key);
+            if (idx === -1) return;
+            const newIdx = idx + direction;
+            if (newIdx < 0 || newIdx >= state.sectionsOrder.length) return;
+            const item = state.sectionsOrder.splice(idx, 1)[0];
+            state.sectionsOrder.splice(newIdx, 0, item);
+            updateUI();
+        }
+
+        function renderSectionsReorderStrip() {
+            normalizeSectionsOrder();
+            const strip = document.getElementById('sections-reorder-strip');
+            if (!strip) return;
+
+            strip.innerHTML = '';
+            const hasRenderBaseline = renderedSectionKeys.size > 0;
+            state.sectionsOrder.forEach((key, idx) => {
+                const canToggle = Object.prototype.hasOwnProperty.call(SECTION_VISIBILITY_TOGGLES, key);
+                const addonKey = SECTION_VISIBILITY_TOGGLES[key];
+                const isAddOn = canToggle ? !!state[addonKey] : true;
+                const inPreview = hasRenderBaseline ? renderedSectionKeys.has(key) : true;
+                const isVisibleInPreview = inPreview && isAddOn;
+                const chip = document.createElement('div');
+                chip.className = isVisibleInPreview ? 'reorder-chip' : 'reorder-chip reorder-chip-inactive';
+                chip.title = isVisibleInPreview
+                    ? (SECTION_LABELS[key] || key)
+                    : `${SECTION_LABELS[key] || key} — not shown in preview${canToggle ? (isAddOn ? ' (empty)' : ' (hidden — click 👁 to show)') : ' (no content yet)'}`;
+                const eyeBtn = canToggle ? `
+                    <button type="button" class="reorder-tag-btn reorder-visibility-btn" onclick="toggleSectionVisible('${key}')" title="${isAddOn ? 'Hide' : 'Show'} ${SECTION_LABELS[key] || key}">${isAddOn ? '👁️' : '🚫'}</button>` : '';
+                chip.innerHTML = `
+                    <button type="button" class="reorder-tag-btn" onclick="moveSection('${key}', -1)" title="Move Earlier" ${idx === 0 ? 'disabled style="opacity:0.3"' : ''}>&larr;</button>${eyeBtn}
+                    <span>${SECTION_LABELS[key] || key}</span>
+                    <button type="button" class="reorder-tag-btn" onclick="moveSection('${key}', 1)" title="Move Later" ${idx === state.sectionsOrder.length - 1 ? 'disabled style="opacity:0.3"' : ''}>&rarr;</button>
+                `;
+                strip.appendChild(chip);
+            });
+        }
+
         function toggleAddon(key, checked) {
             state[key] = checked;
             const card = document.getElementById(`card-addon-${key === 'visitorCount' ? 'visitor' : key}`);
@@ -1149,6 +1217,16 @@
                 card.classList.toggle('active', checked);
             }
             updateUI();
+        }
+
+        function toggleSectionVisible(key) {
+            const addonKey = SECTION_VISIBILITY_TOGGLES[key];
+            if (!addonKey) return;
+            const next = !state[addonKey];
+            const chkId = addonKey === 'visitorCount' ? 'addon-visitor-count' : `addon-${addonKey}`;
+            const chk = document.getElementById(chkId);
+            if (chk) chk.checked = next;
+            toggleAddon(addonKey, next);
         }
 
         // Custom Repeaters & Reordering Logic
@@ -1879,9 +1957,12 @@
 
             const detectedBadge = document.getElementById('skills-detected-badge');
             if (detectedBadge) {
-                if (state.skillsDetected && state.detectedLanguages && state.detectedLanguages.length > 0) {
-                    const topList = state.detectedLanguages.map(l => l.charAt(0).toUpperCase() + l.slice(1)).join(', ');
-                    detectedBadge.textContent = `⚡ Auto-detected: ${topList}`;
+                if (state.skillsDetected && state.skills && state.skills.length > 0) {
+                    const skillNames = state.skills.map(id => {
+                        const chip = document.querySelector(`.skill-chip[data-skill-id="${id}"]`);
+                        return chip ? chip.dataset.skillName : id;
+                    });
+                    detectedBadge.textContent = `⚡ Auto-detected: ${skillNames.join(', ')}`;
                     detectedBadge.style.display = 'inline-block';
                 } else {
                     detectedBadge.style.display = 'none';
@@ -2014,36 +2095,41 @@
         function generateFullReadme() {
             const user = state.username || 'your-username';
             const name = state.displayName.trim() || user;
-            const lines = [];
+            const headerLines = [];
+            const sections = {};
 
             // Banner Image
             const bannerUrl = getEffectiveBannerUrl();
             if (bannerUrl) {
-                lines.push('<p align="center">');
-                lines.push(`  <img src="${bannerUrl}" alt="${name} Banner" />`);
-                lines.push('</p>\n');
+                headerLines.push('<p align="center">');
+                headerLines.push(`  <img src="${bannerUrl}" alt="${name} Banner" />`);
+                headerLines.push('</p>\n');
             }
 
             // Title & Greeting
-            lines.push(`# Hi there, I'm ${name} 👋\n`);
+            headerLines.push(`# Hi there, I'm ${name} 👋\n`);
 
             // Tagline / Subtitle
             if (state.bio.trim()) {
-                lines.push(`> ${state.bio.trim()}\n`);
+                sections.bio = [`> ${state.bio.trim()}\n`];
             }
 
             // Typing SVG Intro
             if (state.typingLines.trim()) {
-                lines.push('<p align="center">');
-                lines.push(`  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=22C55E&center=true&vCenter=true&width=435&lines=${encodeURIComponent(state.typingLines.trim())}" alt="Typing SVG" />`);
-                lines.push('</p>\n');
+                sections.typing = [
+                    '<p align="center">',
+                    `  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=22C55E&center=true&vCenter=true&width=435&lines=${encodeURIComponent(state.typingLines.trim())}" alt="Typing SVG" />`,
+                    '</p>\n'
+                ];
             }
 
             // Visitor Count Badge
             if (state.visitorCount) {
-                lines.push('<p align="left">');
-                lines.push(`  <img src="https://komarev.com/ghpvc/?username=${encodeURIComponent(user)}&label=Profile%20Views&color=0e75b6&style=flat" alt="${user} Profile Views" />`);
-                lines.push('</p>\n');
+                sections.visitor = [
+                    '<p align="left">',
+                    `  <img src="https://komarev.com/ghpvc/?username=${encodeURIComponent(user)}&label=Profile%20Views&color=0e75b6&style=flat" alt="${user} Profile Views" />`,
+                    '</p>\n'
+                ];
             }
 
             // About Me
@@ -2065,9 +2151,7 @@
                         aboutLines.push(`- ${item.icon ? item.icon + ' ' : ''}${(item.text || '').trim()}`);
                     }
                 });
-                lines.push('### 🚀 About Me');
-                lines.push(aboutLines.join('\n'));
-                lines.push('');
+                sections.about = ['### 🚀 About Me', aboutLines.join('\n'), ''];
             }
 
             // Social Badges
@@ -2105,10 +2189,7 @@
             });
 
             if (socialBadges.length > 0) {
-                lines.push('### 🌐 Connect with Me');
-                lines.push('<p align="left">');
-                socialBadges.forEach(badge => lines.push(`  ${badge}`));
-                lines.push('</p>\n');
+                sections.socials = ['### 🌐 Connect with Me', '<p align="left">', ...socialBadges.map(badge => `  ${badge}`), '</p>\n'];
             }
 
             // Tech Stack
@@ -2122,19 +2203,15 @@
                 }
             });
             if (techBadges.length > 0) {
-                lines.push('### 🛠️ Tech Stack & Skills');
-                lines.push('<p align="left">');
-                techBadges.forEach(tb => lines.push(`  ${tb}`));
-                lines.push('</p>\n');
+                sections.tech = ['### 🛠️ Tech Stack & Skills', '<p align="left">', ...techBadges.map(tb => `  ${tb}`), '</p>\n'];
             }
 
             // Featured Projects
             const validProjects = state.projects.filter(p => (p.title && p.title.trim()) || (p.description && p.description.trim()) || (p.thumbnail && p.thumbnail.trim()));
             if (validProjects.length > 0) {
-                lines.push('### 💼 Featured Projects\n');
-                lines.push('<table>');
+                const projectLines = ['### 💼 Featured Projects\n', '<table>'];
                 for (let i = 0; i < validProjects.length; i += 2) {
-                    lines.push('  <tr>');
+                    projectLines.push('  <tr>');
                     for (let j = i; j < Math.min(i + 2, validProjects.length); j++) {
                         const proj = validProjects[j];
                         const title = (proj.title || '').trim() || 'Featured Project';
@@ -2145,33 +2222,34 @@
                         const tech = (proj.techStack || '').trim();
                         const link = live || repo || '#';
 
-                        lines.push('    <td width="50%" valign="top">');
-                        lines.push(`      <h4 align="center"><a href="${link}"><b>${title}</b></a></h4>`);
+                        projectLines.push('    <td width="50%" valign="top">');
+                        projectLines.push(`      <h4 align="center"><a href="${link}"><b>${title}</b></a></h4>`);
                         if (thumb) {
-                            lines.push(`      <a href="${link}">`);
-                            lines.push(`        <img src="${thumb}" alt="${title}" width="100%" />`);
-                            lines.push('      </a>');
+                            projectLines.push(`      <a href="${link}">`);
+                            projectLines.push(`        <img src="${thumb}" alt="${title}" width="100%" />`);
+                            projectLines.push('      </a>');
                         }
                         if (desc) {
-                            lines.push(`      <p>${desc}</p>`);
+                            projectLines.push(`      <p>${desc}</p>`);
                         }
                         if (tech) {
-                            lines.push(`      <p><strong>Tech Stack:</strong> ${tech}</p>`);
+                            projectLines.push(`      <p><strong>Tech Stack:</strong> ${tech}</p>`);
                         }
                         const links = [];
                         if (repo) links.push(`<a href="${repo}"><b>📂 GitHub</b></a>`);
                         if (live) links.push(`<a href="${live}"><b>🚀 Live Demo</b></a>`);
                         if (links.length > 0) {
-                            lines.push(`      <p align="center">${links.join(' &bull; ')}</p>`);
+                            projectLines.push(`      <p align="center">${links.join(' &bull; ')}</p>`);
                         }
-                        lines.push('    </td>');
+                        projectLines.push('    </td>');
                     }
                     if (validProjects.length % 2 !== 0 && i === validProjects.length - 1) {
-                        lines.push('    <td width="50%" valign="top"></td>');
+                        projectLines.push('    <td width="50%" valign="top"></td>');
                     }
-                    lines.push('  </tr>');
+                    projectLines.push('  </tr>');
                 }
-                lines.push('</table>\n');
+                projectLines.push('</table>\n');
+                sections.projects = projectLines;
             }
 
             // Support Me
@@ -2190,63 +2268,71 @@
             });
 
             if (supportBadges.length > 0) {
-                lines.push('### ☕ Support Me');
-                lines.push('<p align="left">');
-                supportBadges.forEach(b => lines.push(`  ${b}`));
-                lines.push('</p>\n');
+                sections.support = ['### ☕ Support Me', '<p align="left">', ...supportBadges.map(b => `  ${b}`), '</p>\n'];
             }
 
             // Snake Widget
             if (state.snake) {
-                lines.push('### 🐍 Contribution Graph Snake Animation');
+                const snakeLines = ['### 🐍 Contribution Graph Snake Animation'];
                 if (state.hostMode === 'custom' && state.customHost) {
-                    lines.push('<p align="center">');
-                    lines.push(`  <img src="${state.customHost}/api/snake?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}" alt="GitHub Contribution Snake" />`);
-                    lines.push('</p>\n');
+                    snakeLines.push('<p align="center">');
+                    snakeLines.push(`  <img src="${state.customHost}/api/snake?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}" alt="GitHub Contribution Snake" />`);
+                    snakeLines.push('</p>\n');
                 } else {
-                    lines.push('<picture>');
-                    lines.push(`  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/${encodeURIComponent(user)}/${encodeURIComponent(user)}/output/github-contribution-grid-snake-dark.svg">`);
-                    lines.push(`  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/${encodeURIComponent(user)}/${encodeURIComponent(user)}/output/github-contribution-grid-snake.svg">`);
-                    lines.push(`  <img alt="GitHub Contribution Snake" src="https://raw.githubusercontent.com/${encodeURIComponent(user)}/${encodeURIComponent(user)}/output/github-contribution-grid-snake.svg" />`);
-                    lines.push('</picture>\n');
+                    snakeLines.push('<picture>');
+                    snakeLines.push(`  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/${encodeURIComponent(user)}/${encodeURIComponent(user)}/output/github-contribution-grid-snake-dark.svg">`);
+                    snakeLines.push(`  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/${encodeURIComponent(user)}/${encodeURIComponent(user)}/output/github-contribution-grid-snake.svg">`);
+                    snakeLines.push(`  <img alt="GitHub Contribution Snake" src="https://raw.githubusercontent.com/${encodeURIComponent(user)}/${encodeURIComponent(user)}/output/github-contribution-grid-snake.svg" />`);
+                    snakeLines.push('</picture>\n');
                 }
+                sections.snake = snakeLines;
             }
 
-            // Trophies
+            // Trophies — own instance when Vercel hosting is selected (avoids third-party rate limits)
             if (state.trophies) {
-                lines.push('### 🏆 GitHub Trophies');
-                lines.push('<p align="center">');
+                const trophyLines = ['### 🏆 GitHub Trophies', '<p align="center">'];
                 if (state.hostMode === 'custom' && state.customHost) {
-                    lines.push(`  <img src="${state.customHost}/api/trophies?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}" alt="GitHub Trophies" />`);
+                    trophyLines.push(`  <img src="${state.customHost}/api/trophies?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}" alt="GitHub Trophies" />`);
                 } else {
-                    lines.push(`  <img src="https://github-profile-trophy.vercel.app/?username=${encodeURIComponent(user)}&theme=radical&no-frame=false&no-bg=false&margin-w=4" alt="GitHub Trophies" />`);
+                    trophyLines.push(`  <img src="https://github-profile-trophy.screw-hand.vercel.app/?username=${encodeURIComponent(user)}&theme=radical&no-frame=false&no-bg=false&margin-w=4" alt="GitHub Trophies" />`);
                 }
-                lines.push('</p>\n');
+                trophyLines.push('</p>\n');
+                sections.trophies = trophyLines;
             }
 
             // Quotes
             if (state.quotes) {
-                lines.push('### 💬 Random Dev Quote');
-                lines.push('<p align="center">');
-                lines.push('  <img src="https://quotes-github-readme.vercel.app/api?type=horizontal&theme=radical" alt="Dev Quote" />');
-                lines.push('</p>\n');
+                sections.quotes = [
+                    '### 💬 Random Dev Quote',
+                    '<p align="center">',
+                    '  <img src="https://quotes-github-readme.vercel.app/api?type=horizontal&theme=radical" alt="Dev Quote" />',
+                    '</p>\n'
+                ];
             }
 
             // Analytics Widgets
             const hasWidgets = state.widgets.stats || state.widgets.languages || state.widgets.streak;
             if (hasWidgets) {
-                lines.push('## 📊 GitHub Analytics\n');
-                lines.push('<p align="center">');
-                if (state.widgets.stats) lines.push(`  ${getSnippet('stats', 'html')}`);
-                if (state.widgets.languages) lines.push(`  ${getSnippet('languages', 'html')}`);
-                lines.push('</p>\n');
-
-                if (state.widgets.streak) {
-                    lines.push('<p align="center">');
-                    lines.push(`  ${getSnippet('streak', 'html')}`);
-                    lines.push('</p>\n');
+                const analyticsLines = ['## 📊 GitHub Analytics\n'];
+                if (state.widgets.stats) {
+                    analyticsLines.push('<p align="center">', `  ${getSnippet('stats', 'html')}`, '</p>\n');
                 }
+                if (state.widgets.languages) {
+                    analyticsLines.push('<p align="center">', `  ${getSnippet('languages', 'html')}`, '</p>\n');
+                }
+                if (state.widgets.streak) {
+                    analyticsLines.push('<p align="center">', `  ${getSnippet('streak', 'html')}`, '</p>\n');
+                }
+                sections.analytics = analyticsLines;
             }
+
+            normalizeSectionsOrder();
+            const lines = [...headerLines];
+            state.sectionsOrder.forEach(key => {
+                if (sections[key] && sections[key].length > 0) {
+                    lines.push(...sections[key]);
+                }
+            });
 
             lines.push('---\n');
             lines.push('<p align="center">');
@@ -2262,25 +2348,26 @@
 
             const user = state.username || 'your-username';
             const name = state.displayName.trim() || user;
-            let html = '';
+            let headerHtml = '';
+            const sections = {};
 
             const bannerUrl = getEffectiveBannerUrl();
             if (bannerUrl) {
-                html += `<p style="text-align: center;"><img src="${bannerUrl}" alt="Banner" style="max-height: 220px; width: 100%; object-fit: cover; border-radius: 8px;" /></p>`;
+                headerHtml += `<p style="text-align: center;"><img src="${bannerUrl}" alt="Banner" style="max-height: 220px; width: 100%; object-fit: cover; border-radius: 8px;" /></p>`;
             }
 
-            html += `<h1>Hi there, I'm ${name} 👋</h1>`;
+            headerHtml += `<h1>Hi there, I'm ${name} 👋</h1>`;
 
             if (state.bio.trim()) {
-                html += `<blockquote>${state.bio.trim()}</blockquote>`;
+                sections.bio = `<blockquote>${state.bio.trim()}</blockquote>`;
             }
 
             if (state.typingLines.trim()) {
-                html += `<p style="text-align: center;"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=22C55E&center=true&vCenter=true&width=435&lines=${encodeURIComponent(state.typingLines.trim())}" alt="Typing SVG" /></p>`;
+                sections.typing = `<p style="text-align: center;"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=22C55E&center=true&vCenter=true&width=435&lines=${encodeURIComponent(state.typingLines.trim())}" alt="Typing SVG" /></p>`;
             }
 
             if (state.visitorCount) {
-                html += `<p><img src="https://komarev.com/ghpvc/?username=${encodeURIComponent(user)}&label=Profile%20Views&color=0e75b6&style=flat" alt="Views" /></p>`;
+                sections.visitor = `<p><img src="https://komarev.com/ghpvc/?username=${encodeURIComponent(user)}&label=Profile%20Views&color=0e75b6&style=flat" alt="Views" /></p>`;
             }
 
             const aboutItems = [];
@@ -2301,9 +2388,7 @@
                         aboutItems.push(`${item.icon ? item.icon + ' ' : ''}<strong>${(item.text || '').trim()}</strong>`);
                     }
                 });
-                html += `<h3>🚀 About Me</h3><ul>`;
-                aboutItems.forEach(item => html += `<li>${item}</li>`);
-                html += `</ul>`;
+                sections.about = `<h3>🚀 About Me</h3><ul>${aboutItems.map(item => `<li>${item}</li>`).join('')}</ul>`;
             }
 
             // Socials
@@ -2341,7 +2426,7 @@
             });
 
             if (badges.length > 0) {
-                html += `<h3>🌐 Connect with Me</h3><p style="display: flex; flex-wrap: wrap; gap: 8px;">${badges.join(' ')}</p>`;
+                sections.socials = `<h3>🌐 Connect with Me</h3><p style="display: flex; flex-wrap: wrap; gap: 8px;">${badges.join(' ')}</p>`;
             }
 
             // Skills
@@ -2355,14 +2440,13 @@
                 }
             });
             if (previewTechBadges.length > 0) {
-                html += `<h3>🛠️ Tech Stack & Skills</h3><p style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">${previewTechBadges.join(' ')}</p>`;
+                sections.tech = `<h3>🛠️ Tech Stack & Skills</h3><p style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">${previewTechBadges.join(' ')}</p>`;
             }
 
             // Featured Projects
             const validPreviewProjects = state.projects.filter(p => (p.title && p.title.trim()) || (p.description && p.description.trim()) || (p.thumbnail && p.thumbnail.trim()));
             if (validPreviewProjects.length > 0) {
-                html += `<h3>💼 Featured Projects</h3>`;
-                html += `<div class="project-preview-grid">`;
+                let projectsHtml = `<h3>💼 Featured Projects</h3><div class="project-preview-grid">`;
                 validPreviewProjects.forEach(proj => {
                     const title = proj.title ? proj.title.trim() : 'Featured Project';
                     const desc = proj.description ? proj.description.trim() : '';
@@ -2372,7 +2456,7 @@
                     const tech = proj.techStack ? proj.techStack.trim() : '';
                     const primaryLink = live || repo || '#';
 
-                    html += `
+                    projectsHtml += `
                         <div class="project-preview-card">
                             ${thumb ? `<a href="${primaryLink}" target="_blank"><img src="${thumb}" alt="${title}" class="project-preview-card-thumb" onerror="this.style.display='none';" /></a>` : ''}
                             <div class="project-preview-card-body">
@@ -2387,7 +2471,8 @@
                         </div>
                     `;
                 });
-                html += `</div>`;
+                projectsHtml += `</div>`;
+                sections.projects = projectsHtml;
             }
 
             // Support
@@ -2406,46 +2491,66 @@
             });
 
             if (support.length > 0) {
-                html += `<h3>☕ Support Me</h3><p style="display: flex; flex-wrap: wrap; gap: 8px;">${support.join(' ')}</p>`;
+                sections.support = `<h3>☕ Support Me</h3><p style="display: flex; flex-wrap: wrap; gap: 8px;">${support.join(' ')}</p>`;
             }
 
             // Snake Widget
             if (state.snake) {
-                html += `<h3>🐍 Contribution Graph Snake Animation</h3>`;
+                const userSnake = `https://raw.githubusercontent.com/${encodeURIComponent(user)}/${encodeURIComponent(user)}/output/github-contribution-grid-snake.svg`;
+                const demoSnake = 'https://raw.githubusercontent.com/Platane/snk/output/github-contribution-grid-snake.svg';
                 const snakeSrc = (state.hostMode === 'custom' && state.customHost)
                     ? `${state.customHost}/api/snake?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}`
-                    : `https://raw.githubusercontent.com/${encodeURIComponent(user)}/${encodeURIComponent(user)}/output/github-contribution-grid-snake.svg`;
-                html += `<p style="text-align: center;"><img src="${snakeSrc}" alt="Snake" onerror="this.style.display='none';" /></p>`;
+                    : userSnake;
+                const demoNote = `<p id="snake-demo-note" style="display: none; margin: 6px auto 0; max-width: 520px; font-size: 12px; line-height: 1.45; color: var(--text-muted, #9ca3af); text-align: center;">⚠️ Showing the <strong>Platane/snk demo snake</strong> — this is sample animation only, <strong>not your real contribution graph</strong>. Run the Platane/snk GitHub Action on your profile repo to load your own snake.</p>`;
+                sections.snake = `<h3>🐍 Contribution Graph Snake Animation</h3><p style="text-align: center;"><img src="${snakeSrc}" alt="Snake" style="max-width: 100%; height: auto;" onerror="this.onerror=null; this.src='${demoSnake}'; const n=document.getElementById('snake-demo-note'); if(n) n.style.display='block';" /></p>${demoNote}`;
             }
 
-            // Trophies
+            // Trophies — own instance when Vercel hosting is selected (no third-party rate limits)
             if (state.trophies) {
-                const trophySrc = (state.hostMode === 'custom' && state.customHost)
-                    ? `${state.customHost}/api/trophies?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}`
-                    : `https://github-profile-trophy.vercel.app/?username=${encodeURIComponent(user)}&theme=radical&no-frame=false&no-bg=false&margin-w=4`;
-                html += `<h3>🏆 GitHub Trophies</h3><p style="text-align: center;"><img src="${trophySrc}" alt="Trophies" onerror="this.style.display='none';" /></p>`;
+                const trophyQuery = `?username=${encodeURIComponent(user)}&theme=radical&no-frame=false&no-bg=false&margin-w=4`;
+                const trophyCdn = 'https://github-profile-trophy.screw-hand.vercel.app';
+                const trophyCdnFallback = 'https://github-trophies.devomb.com';
+                const isCustom = state.hostMode === 'custom' && state.customHost;
+                if (isCustom) {
+                    const selfTrophy = `${state.customHost}/api/trophies?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}`;
+                    sections.trophies = `<h3>🏆 GitHub Trophies</h3><p style="text-align: center;"><img src="${selfTrophy}" alt="Trophies" style="max-width: 100%; height: auto;" onerror="this.onerror=null; this.style.display='none';" /></p>`;
+                } else {
+                    sections.trophies = `<h3>🏆 GitHub Trophies</h3><p style="text-align: center;"><img src="${trophyCdn}${trophyQuery}" alt="Trophies" style="max-width: 100%; height: auto;" onerror="this.onerror=null; this.src='${trophyCdnFallback}${trophyQuery}';" /></p>`;
+                }
             }
 
             // Quotes
             if (state.quotes) {
                 const quoteTheme = encodeURIComponent(state.theme || 'light');
-                html += `<h3>💬 Random Dev Quote</h3><p style="text-align: center;"><img src="https://quotes-github-readme.vercel.app/api?type=horizontal&theme=${quoteTheme}" alt="Quote" /></p>`;
+                sections.quotes = `<h3>💬 Random Dev Quote</h3><p style="text-align: center;"><img src="https://quotes-github-readme.vercel.app/api?type=horizontal&theme=${quoteTheme}" alt="Quote" /></p>`;
             }
 
             // Analytics Widgets
             const hasWidgets = state.widgets.stats || state.widgets.languages || state.widgets.streak;
             if (hasWidgets) {
-                html += `<h2>📊 GitHub Analytics</h2>`;
-                if (state.widgets.stats || state.widgets.languages) {
-                    html += `<p style="text-align: center; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; align-items: flex-start;">`;
-                    if (state.widgets.stats) html += `<img src="${getWidgetUrl('stats')}" alt="Stats" style="max-width: 49%; height: auto;" onerror="this.src='https://github-stats-extended.vercel.app/api?username=torvalds&show_icons=true&theme=${encodeURIComponent(state.theme || 'light')}&locale=en'; this.onerror=null;" />`;
-                    if (state.widgets.languages) html += `<img src="${getWidgetUrl('languages')}" alt="Languages" style="max-width: 49%; height: auto;" onerror="this.src='https://github-stats-extended.vercel.app/api/top-langs/?username=torvalds&layout=compact&theme=${encodeURIComponent(state.theme || 'light')}'; this.onerror=null;" />`;
-                    html += `</p>`;
+                let analyticsHtml = `<h2>📊 GitHub Analytics</h2>`;
+                if (state.widgets.stats) {
+                    analyticsHtml += `<p style="text-align: center;"><img src="${getWidgetUrl('stats')}" alt="Stats" style="max-width: 100%; height: auto; display: block; margin: 0 auto 12px;" onerror="this.src='https://github-stats-extended.vercel.app/api?username=torvalds&show_icons=true&theme=${encodeURIComponent(state.theme || 'light')}&locale=en'; this.onerror=null;" /></p>`;
+                }
+                if (state.widgets.languages) {
+                    analyticsHtml += `<p style="text-align: center;"><img src="${getWidgetUrl('languages')}" alt="Languages" style="max-width: 100%; height: auto; display: block; margin: 0 auto 12px;" onerror="this.src='https://github-stats-extended.vercel.app/api/top-langs/?username=torvalds&layout=compact&theme=${encodeURIComponent(state.theme || 'light')}'; this.onerror=null;" /></p>`;
                 }
                 if (state.widgets.streak) {
-                    html += `<p style="text-align: center;"><img src="${getWidgetUrl('streak')}" alt="Streak" style="max-width: 100%; height: auto;" /></p>`;
+                    analyticsHtml += `<p style="text-align: center;"><img src="${getWidgetUrl('streak')}" alt="Streak" style="max-width: 100%; height: auto;" /></p>`;
                 }
+                sections.analytics = analyticsHtml;
             }
+
+            normalizeSectionsOrder();
+            let html = headerHtml;
+            const activeKeys = new Set();
+            state.sectionsOrder.forEach(key => {
+                if (sections[key]) {
+                    activeKeys.add(key);
+                    html += sections[key];
+                }
+            });
+            renderedSectionKeys = activeKeys;
 
             previewEl.innerHTML = html;
         }
@@ -2463,8 +2568,9 @@
             // Render visual profile preview
             renderGithubPreview();
 
-            // Refresh socials reorder strip
+            // Refresh socials and section reorder strips
             renderSocialsReorderStrip();
+            renderSectionsReorderStrip();
 
             // Auto-persist workspace state to localStorage
             saveStateToStorage();
@@ -2749,6 +2855,7 @@
                     customHost: state.customHost,
                     theme: state.theme,
                     widgets: state.widgets,
+                    sectionsOrder: state.sectionsOrder,
                     socialsOrder: state.socialsOrder,
                     customBio: state.customBio,
                     customTechBadges: state.customTechBadges,
@@ -2773,10 +2880,15 @@
                 if (!saved || !saved.username || !saved.workspaceLaunched) return false;
 
                 Object.keys(saved).forEach(key => {
+                    if (key === 'widgets' && saved.widgets) {
+                        state.widgets = { ...state.widgets, ...saved.widgets };
+                        return;
+                    }
                     if (key in state && saved[key] !== undefined) {
                         state[key] = saved[key];
                     }
                 });
+                normalizeSectionsOrder();
             } catch (err) {
                 console.warn('Could not read saved state from localStorage:', err);
                 return false;
@@ -2831,6 +2943,9 @@
                     if (chip) chip.classList.toggle('active', !!state.widgets[wKey]);
                 });
             }
+
+            normalizeSectionsOrder();
+            renderSectionsReorderStrip();
 
             // Theme chips
             if (state.theme) {
