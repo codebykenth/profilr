@@ -778,6 +778,20 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="deploy-step-item">
+                                    <div class="deploy-step-num">5</div>
+                                    <div class="deploy-step-content">
+                                        <div class="deploy-step-heading">Copy or Download Your README</div>
+                                        <div class="deploy-step-desc">
+                                            Click <strong>📋 Copy Full README.md</strong> below to copy the generated Markdown to your clipboard. Paste it into your profile repository's <code>README.md</code> file. Alternatively, click <strong>Download .md</strong> to save the file locally.
+                                        </div>
+                                        <div class="deploy-step-actions">
+                                            <button type="button" class="btn btn-secondary btn-sm" onclick="copyFullReadme(document.getElementById('copy-btn-header'))">📋 Copy</button>
+                                            <button type="button" class="btn btn-secondary btn-sm" onclick="downloadReadme()">⬇ Download</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
