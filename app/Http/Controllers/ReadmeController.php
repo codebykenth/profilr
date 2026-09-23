@@ -34,6 +34,7 @@ class ReadmeController extends Controller
             'hasToken' => $hasToken,
             'repoUrl' => $repoUrl,
             'defaultUsername' => $defaultUsername,
+            'cssFile' => 'landing.css',
             'featuredSkills' => [
                 'php',
                 'laravel',
@@ -84,6 +85,7 @@ class ReadmeController extends Controller
             'apiEnabled' => config('services.github.enable_api', false),
             'repoUrl' => $repoUrl,
             'defaultUsername' => $defaultUsername,
+            'cssFile' => 'builder.css',
             'skillCategories' => SkillService::categorized(),
         ]);
     }

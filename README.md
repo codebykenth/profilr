@@ -43,7 +43,7 @@ That's the only input. Every other environment variable is set automatically whe
 ### Option B — Fork first, then import
 1. Click **Fork** (top right) to copy the repo to your account (choose Private there if you want).
 2. Go to [vercel.com/new](https://vercel.com/new) → **Import** your fork (it must already exist on GitHub).
-3. Add `GITHUB_TOKEN` + `APP_KEY` (same as above) and deploy.
+3. Add `GITHUB_TOKEN` as the only env var and deploy. `APP_KEY` is auto-derived from your token by `bootstrap/app.php` — no need to set it manually.
 
 ### 3. Use in your README
 Once deployed, embed widgets in your GitHub profile README using `<img>` tags:
