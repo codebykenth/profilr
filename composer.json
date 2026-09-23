@@ -1,0 +1,60 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "laravel/github-readme-generator",
+    "type": "project",
+    "description": "Generate dynamic SVG widgets and README templates for your GitHub profile.",
+    "keywords": [
+        "github",
+        "readme",
+        "profile",
+        "svg",
+        "widgets"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "ext-curl": "*",
+        "laravel/framework": "^13.17"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.27"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "scripts": {
+        "setup": [
+            "composer install",
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate --no-interaction"
+        ],
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan serve"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
