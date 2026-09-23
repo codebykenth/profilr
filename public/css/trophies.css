@@ -1,5 +1,3 @@
-.header { font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-title); }
-.icon { fill: var(--theme-icon); }
-.trophy-title { font: 500 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-text); }
-.trophy-value { font: 700 13px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-title); }
-.trophy-rank { font: 700 12px 'Segoe UI', Ubuntu, Sans-Serif; }
+.trophy-title { font: 700 13px 'Segoe UI', Helvetica, Arial, sans-serif; fill: var(--theme-title); }
+.trophy-rank-title { font: 700 10.5px 'Segoe UI', Helvetica, Arial, sans-serif; fill: var(--theme-text); }
+.trophy-score { font: 700 10px 'Segoe UI', Helvetica, Arial, sans-serif; fill: var(--theme-text); }

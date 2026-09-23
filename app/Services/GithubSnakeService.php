@@ -112,13 +112,20 @@ class GithubSnakeService
             }
         }
 
-        // Pacing: relaxed comfortable speed (~7.5 steps per second)
-        $durations = [
-            'slow' => 54.0,
-            'normal' => 42.0,
-            'fast' => 28.0,
-        ];
-        $durationSec = $durations[$speed] ?? 42.0;
+        // Pacing: constant snake velocity regardless of commit density.
+        // A fixed total duration would crawl on sparse graphs (short path,
+        // same seconds) and rush on dense ones. Instead the loop duration
+        // scales with the route length so steps-per-second stay constant.
+        $stepsPerSecond = [
+            'slow' => 4.5,
+            'normal' => 8.0,
+            'fast' => 13.0,
+        ][$speed] ?? 8.0;
+        $routeSteps = max(1, $totalDist);
+        $durationSec = $routeSteps / $stepsPerSecond;
+        // Clamp to avoid absurd loops (near-empty grid or gigantic tour).
+        $durationSec = min(55.0, max(8.0, $durationSec));
+        $durationSec = round($durationSec, 2);
         $animationDuration = "{$durationSec}s";
 
         // Render Days grid with synchronized eating animations

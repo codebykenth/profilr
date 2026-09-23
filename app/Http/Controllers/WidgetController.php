@@ -240,56 +240,121 @@ class WidgetController extends Controller
 
     /**
      * GET /api/trophies — Self-hosted GitHub trophies SVG (uses this instance's GITHUB_TOKEN).
+     *
+     * Mirrors the classic github-profile-trophy UI: one 110x110 panel per trophy
+     * with a cup icon, rank letter, rank title, score and next-rank progress bar.
+     * Supports the same query params: column, row, margin-w, margin-h,
+     * no-bg, no-frame, title, rank.
      */
     public function trophies(Request $request): Response
     {
-        return $this->renderWidget($request, 'trophies', function (string $username, array $theme) {
+        return $this->renderWidget($request, 'trophies', function (string $username, array $theme) use ($request) {
             $data = $this->github->getUserStats($username ?: null);
             $profile = $this->github->getUserProfile($username ?: null);
 
-            $stats = [
-                ['icon' => self::ICONS['star'], 'title' => 'Total Stars Earned', 'value' => number_format($data['totalStars']), 'count' => $data['totalStars']],
-                ['icon' => self::ICONS['commit'], 'title' => 'Total Commits', 'value' => number_format($data['totalCommits']), 'count' => $data['totalCommits']],
-                ['icon' => self::ICONS['pr'], 'title' => 'Total Pull Requests', 'value' => number_format($data['totalPRs']), 'count' => $data['totalPRs']],
-                ['icon' => self::ICONS['issue'], 'title' => 'Total Issues', 'value' => number_format($data['totalIssues']), 'count' => $data['totalIssues']],
-                ['icon' => self::ICONS['commit'], 'title' => 'Contributions (Year)', 'value' => number_format($data['totalContributions']), 'count' => $data['totalContributions']],
-                ['icon' => self::ICONS['star'], 'title' => 'Followers', 'value' => number_format($profile['followers']), 'count' => $profile['followers']],
+            $experienceScore = $this->trophyExperienceScore($profile['createdAt'] ?? '');
+
+            $definitions = [
+                ['key' => 'Stars', 'score' => (int) $data['totalStars'], 'conditions' => [
+                    ['SSS', 'Super Stargazer', 2000], ['SS', 'High Stargazer', 700], ['S', 'Stargazer', 200],
+                    ['AAA', 'Super Star', 100], ['AA', 'High Star', 50], ['A', 'You are a Star', 30],
+                    ['B', 'Middle Star', 10], ['C', 'First Star', 1],
+                ]],
+                ['key' => 'Commits', 'score' => (int) $data['totalCommits'], 'conditions' => [
+                    ['SSS', 'God Committer', 4000], ['SS', 'Deep Committer', 2000], ['S', 'Super Committer', 1000],
+                    ['AAA', 'Ultra Committer', 500], ['AA', 'Hyper Committer', 200], ['A', 'High Committer', 100],
+                    ['B', 'Middle Committer', 10], ['C', 'First Commit', 1],
+                ]],
+                ['key' => 'Followers', 'score' => (int) $profile['followers'], 'conditions' => [
+                    ['SSS', 'Super Celebrity', 1000], ['SS', 'Ultra Celebrity', 400], ['S', 'Hyper Celebrity', 200],
+                    ['AAA', 'Famous User', 100], ['AA', 'Active User', 50], ['A', 'Dynamic User', 20],
+                    ['B', 'Many Friends', 10], ['C', 'First Friend', 1],
+                ]],
+                ['key' => 'Issues', 'score' => (int) $data['totalIssues'], 'conditions' => [
+                    ['SSS', 'God Issuer', 1000], ['SS', 'Deep Issuer', 500], ['S', 'Super Issuer', 200],
+                    ['AAA', 'Ultra Issuer', 100], ['AA', 'Hyper Issuer', 50], ['A', 'High Issuer', 20],
+                    ['B', 'Middle Issuer', 10], ['C', 'First Issue', 1],
+                ]],
+                ['key' => 'PullRequest', 'score' => (int) $data['totalPRs'], 'conditions' => [
+                    ['SSS', 'God Puller', 1000], ['SS', 'Deep Puller', 500], ['S', 'Super Puller', 200],
+                    ['AAA', 'Ultra Puller', 100], ['AA', 'Hyper Puller', 50], ['A', 'High Puller', 20],
+                    ['B', 'Middle Puller', 10], ['C', 'First Pull', 1],
+                ]],
+                ['key' => 'Repositories', 'score' => (int) $profile['repositories'], 'conditions' => [
+                    ['SSS', 'God Repo Creator', 50], ['SS', 'Deep Repo Creator', 45], ['S', 'Super Repo Creator', 40],
+                    ['AAA', 'Ultra Repo Creator', 35], ['AA', 'Hyper Repo Creator', 30], ['A', 'High Repo Creator', 20],
+                    ['B', 'Middle Repo Creator', 10], ['C', 'First Repository', 1],
+                ]],
+                ['key' => 'Experience', 'score' => $experienceScore, 'conditions' => [
+                    ['SSS', 'Seasoned Veteran', 70], ['SS', 'Grandmaster', 55], ['S', 'Master Dev', 40],
+                    ['AAA', 'Expert Dev', 28], ['AA', 'Experienced Dev', 18], ['A', 'Intermediate Dev', 11],
+                    ['B', 'Junior Dev', 6], ['C', 'Newbie', 2],
+                ]],
             ];
 
-            $cols = 3;
-            $tileW = 200;
-            $tileH = 88;
-            $gapX = 14;
-            $gapY = 14;
             $trophies = [];
-            foreach ($stats as $index => $stat) {
-                [$rank, $rankColor] = $this->trophyRank($stat['count']);
-
-                $trophies[] = [
-                    'x' => ($index % $cols) * ($tileW + $gapX),
-                    'y' => intdiv($index, $cols) * ($tileH + $gapY),
-                    'icon' => $stat['icon'],
-                    'rank' => $rank,
-                    'rankColor' => $rankColor,
-                    'title' => $stat['title'],
-                    'value' => $stat['value'],
-                ];
+            foreach ($definitions as $def) {
+                $trophies[] = $this->buildTrophy($def['key'], $def['score'], $def['conditions']);
             }
 
-            $rows = (int) ceil(count($trophies) / $cols);
-            $cardW = 40 + ($cols * $tileW) + (($cols - 1) * $gapX) + 40;
-            $cardH = 70 + ($rows * $tileH) + (($rows - 1) * $gapY) + 30;
+            // Filter by rank (?rank=S,AAA or ?rank=-C,-B — "?" denotes UNKNOWN).
+            $rankParam = trim((string) $request->query('rank', ''));
+            if ($rankParam !== '') {
+                $trophies = $this->filterTrophiesByRank($trophies, $rankParam);
+            }
+
+            // Filter by title (?title=Stars,Followers or ?title=-Stars).
+            $titleParam = trim((string) $request->query('title', ''));
+            if ($titleParam !== '') {
+                $trophies = $this->filterTrophiesByTitle($trophies, $titleParam);
+            }
+
+            // Sort best rank first (SSS → SS → S → AAA → … → UNKNOWN).
+            $order = array_flip(['SECRET', 'SSS', 'SS', 'S', 'AAA', 'AA', 'A', 'B', 'C', '?']);
+            usort($trophies, function ($a, $b) use ($order) {
+                return ($order[$a['rank']] ?? 99) <=> ($order[$b['rank']] ?? 99);
+            });
+
+            $panel = 110;
+            $maxColumn = (int) $request->query('column', 6);
+            $maxRow = (int) $request->query('row', 3);
+            $marginW = (int) ($request->query('margin-w', $request->query('margin_w', 0)));
+            $marginH = (int) ($request->query('margin-h', $request->query('margin_h', 0)));
+            $noBg = filter_var($request->query('no-bg', $request->query('no_bg', false)), FILTER_VALIDATE_BOOLEAN);
+            $noFrame = filter_var($request->query('no-frame', $request->query('no_frame', false)), FILTER_VALIDATE_BOOLEAN);
+
+            if ($maxColumn === -1) {
+                $maxColumn = max(1, count($trophies));
+                $maxRow = 1;
+            }
+            $maxColumn = max(1, min($maxColumn, 12));
+            $maxRow = max(1, min($maxRow, 10));
+
+            // Cap visible trophies to the requested grid.
+            $trophies = array_slice(array_values($trophies), 0, $maxColumn * $maxRow);
+
+            $cols = min(count($trophies), $maxColumn);
+            $rows = $cols > 0 ? (int) ceil(count($trophies) / $maxColumn) : 0;
+            $cardW = $cols > 0 ? ($panel * $cols) + ($marginW * ($cols - 1)) : $panel;
+            $cardH = $rows > 0 ? ($panel * $rows) + ($marginH * ($rows - 1)) : $panel;
+
+            $positioned = [];
+            foreach ($trophies as $index => $trophy) {
+                $col = $index % $maxColumn;
+                $row = intdiv($index, $maxColumn);
+                $trophy['x'] = ($panel * $col) + ($marginW * $col);
+                $trophy['y'] = ($panel * $row) + ($marginH * $row);
+                $positioned[] = $trophy;
+            }
 
             return view('widgets.trophies', [
                 'theme' => $theme,
-                'username' => $profile['login'] ?: 'GitHub',
-                'trophies' => $trophies,
-                'tileW' => $tileW,
-                'tileH' => $tileH,
+                'trophies' => $positioned,
+                'panel' => $panel,
                 'cardW' => $cardW,
                 'cardH' => $cardH,
-                'padX' => 40,
-                'padY' => 70,
+                'noBg' => $noBg,
+                'noFrame' => $noFrame,
             ])->render();
         });
     }
@@ -302,35 +367,164 @@ class WidgetController extends Controller
         return $this->renderWidget($request, 'snake', function (string $username, array $theme) use ($snakeService, $request) {
             $calendar = $this->github->getContributionCalendar($username ?: null);
             $themeName = $request->query('theme', 'dark');
+            $speed = strtolower((string) $request->query('speed', 'normal'));
+            if (! in_array($speed, ['slow', 'normal', 'fast'], true)) {
+                $speed = 'normal';
+            }
 
             return $snakeService->render([
                 'calendar' => $calendar,
                 'username' => $username ?: 'GitHub',
-            ], $themeName === 'light' ? 'light' : 'dark');
+            ], $themeName === 'light' ? 'light' : 'dark', $speed);
         });
     }
 
     /**
-     * Map a metric count to a trophy rank letter and color.
+     * Build a single trophy with classic github-profile-trophy rank, messages and progress.
      *
-     * @return array{0: string, 1: string}
+     * @param  array<int, array{0: string, 1: string, 2: int}>  $conditions
+     * @return array{title: string, score: int, rank: string, topMessage: string, bottomMessage: string, progress: float}
      */
-    private function trophyRank(int $count): array
+    private function buildTrophy(string $title, int $score, array $conditions): array
     {
-        $tiers = [
-            ['S', 5000, '#f8d847'],
-            ['A', 1000, '#e3b341'],
-            ['B', 200, '#a0a0a0'],
-            ['C', 20, '#8b7355'],
-        ];
+        $rank = '?';
+        $topMessage = 'Unknown';
+        $currentMin = 0;
+        $nextMin = null;
 
-        foreach ($tiers as [$letter, $min, $color]) {
-            if ($count >= $min) {
-                return [$letter, $color];
+        foreach ($conditions as $index => [$letter, $message, $min]) {
+            if ($score >= $min) {
+                $rank = $letter;
+                $topMessage = $message;
+                $currentMin = $min;
+                $nextMin = $index > 0 ? $conditions[$index - 1][2] : null;
+
+                break;
             }
         }
 
-        return ['D', '#6c757d'];
+        if ($rank === '?') {
+            $progress = 0.0;
+        } elseif ($nextMin === null) {
+            $progress = 1.0;
+        } else {
+            $distance = max(1, $nextMin - $currentMin);
+            $progress = min(1.0, max(0.0, ($score - $currentMin) / $distance));
+        }
+
+        return [
+            'title' => $title,
+            'score' => $score,
+            'rank' => $rank,
+            'topMessage' => $topMessage,
+            'bottomMessage' => $this->abridgeScore($score),
+            'progress' => $progress,
+        ];
+    }
+
+    /**
+     * Format a trophy score like the upstream service (e.g. 1500 → 1.5k).
+     */
+    private function abridgeScore(int $score): string
+    {
+        if (abs($score) < 1) {
+            return '0';
+        }
+
+        if (abs($score) > 999) {
+            return sprintf('%s%.1fk', $score < 0 ? '-' : '', abs($score) / 1000);
+        }
+
+        return (string) $score;
+    }
+
+    /**
+     * Experience score mirrors upstream: floor(account age in days / 100).
+     */
+    private function trophyExperienceScore(string $createdAt): int
+    {
+        if ($createdAt === '') {
+            return 0;
+        }
+
+        try {
+            $created = Carbon::parse($createdAt);
+        } catch (\Exception) {
+            return 0;
+        }
+
+        $days = max(0, (int) $created->diffInDays(Carbon::now()));
+
+        return (int) floor($days / 100);
+    }
+
+    /**
+     * Filter trophies by rank (?rank=S,AAA or ?rank=-C,-B — "?" denotes UNKNOWN).
+     *
+     * @param  array<int, array{rank: string}>  $trophies
+     * @return array<int, array{rank: string}>
+     */
+    private function filterTrophiesByRank(array $trophies, string $param): array
+    {
+        $values = array_filter(array_map('trim', explode(',', $param)));
+        if ($values === []) {
+            return $trophies;
+        }
+
+        $isExclusion = str_starts_with($values[0], '-');
+        $normalized = array_map(function ($value) {
+            $value = ltrim($value, '-');
+
+            return strtoupper($value) === 'UNKNOWN' ? '?' : strtoupper($value);
+        }, $values);
+
+        return array_values(array_filter($trophies, function ($trophy) use ($normalized, $isExclusion) {
+            $included = in_array(strtoupper($trophy['rank']), $normalized, true);
+
+            return $isExclusion ? ! $included : $included;
+        }));
+    }
+
+    /**
+     * Filter trophies by title (?title=Stars,Followers or ?title=-Stars).
+     *
+     * @param  array<int, array{title: string}>  $trophies
+     * @return array<int, array{title: string}>
+     */
+    private function filterTrophiesByTitle(array $trophies, string $param): array
+    {
+        $values = array_filter(array_map('trim', explode(',', $param)));
+        if ($values === []) {
+            return $trophies;
+        }
+
+        $isExclusion = str_starts_with($values[0], '-');
+        $normalized = array_map(function ($value) {
+            return strtolower(ltrim($value, '-'));
+        }, $values);
+
+        $aliases = [
+            'star' => 'stars',
+            'commit' => 'commits',
+            'follower' => 'followers',
+            'issue' => 'issues',
+            'pr' => 'pullrequest',
+            'pulls' => 'pullrequest',
+            'puller' => 'pullrequest',
+            'repo' => 'repositories',
+            'repository' => 'repositories',
+            'experience' => 'experience',
+            'duration' => 'experience',
+            'since' => 'experience',
+        ];
+
+        $normalized = array_map(fn ($value) => $aliases[$value] ?? $value, $normalized);
+
+        return array_values(array_filter($trophies, function ($trophy) use ($normalized, $isExclusion) {
+            $included = in_array(strtolower($trophy['title']), $normalized, true);
+
+            return $isExclusion ? ! $included : $included;
+        }));
     }
 
     /**

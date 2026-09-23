@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\ReadmeController;
 use App\Http\Controllers\WidgetController;
 use Illuminate\Support\Facades\Route;
@@ -9,6 +10,9 @@ Route::get('/', [ReadmeController::class, 'landing'])->name('home');
 
 // Interactive Profile & README Builder
 Route::get('/builder', [ReadmeController::class, 'builder'])->name('builder');
+
+// Live presence heartbeat — always enabled (no GitHub token needed, no DB needed).
+Route::get('/api/presence', [PresenceController::class, 'show'])->name('api.presence');
 
 // Widget SVG endpoints (only registered if ENABLE_API=true in self-hosted deployments)
 if (config('services.github.enable_api', false)) {
@@ -27,7 +31,7 @@ if (config('services.github.enable_api', false)) {
         return response()->json([
             'status' => 'disabled',
             'message' => 'API endpoints are disabled on this server to protect Vercel execution & GitHub API rate limits. The profile generator produces 100% ready-to-use copy-paste markdown using direct CDN services, or you can self-host this repository to run your own API.',
-            'repo' => config('services.github.repo_url', 'https://github.com/codebykenth/github-readme-generator'),
+            'repo' => config('services.github.repo_url', 'https://github.com/codebykenth/profilr'),
         ], 403);
     })->where('any', '.*');
 }

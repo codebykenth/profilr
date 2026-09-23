@@ -131,8 +131,8 @@ All widgets support a `?theme=` parameter:
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/github-readme-generator.git
-cd github-readme-generator
+git clone https://github.com/YOUR_USERNAME/profilr.git
+cd profilr
 
 # Install dependencies
 composer install

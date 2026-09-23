@@ -163,7 +163,7 @@
 
 @if (!empty($customHost))
 <p align="center">
-  <img src="{{ $customHost }}/api/trophies?username={{ $username }}&theme={{ $theme }}" alt="GitHub Trophies" />
+  <img src="{{ $customHost }}/api/trophies?username={{ $username }}&theme={{ $theme }}&column=6&margin-w=4&no-frame=false&no-bg=false" alt="GitHub Trophies" />
 </p>
 @else
 <p align="center">

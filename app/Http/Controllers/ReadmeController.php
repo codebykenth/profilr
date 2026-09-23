@@ -19,7 +19,7 @@ class ReadmeController extends Controller
     public function landing(Request $request)
     {
         $hasToken = ! empty(config('services.github.token'));
-        $repoUrl = config('services.github.repo_url', 'https://github.com/codebykenth/github-readme-generator');
+        $repoUrl = config('services.github.repo_url', 'https://github.com/codebykenth/profilr');
         $defaultUsername = $request->query('username', '');
 
         if (! $defaultUsername && $hasToken) {
@@ -65,7 +65,7 @@ class ReadmeController extends Controller
         $themes = ThemeService::names();
         $baseUrl = rtrim(config('app.url') ?: $request->getSchemeAndHttpHost(), '/');
         $hasToken = ! empty(config('services.github.token'));
-        $repoUrl = config('services.github.repo_url', 'https://github.com/codebykenth/github-readme-generator');
+        $repoUrl = config('services.github.repo_url', 'https://github.com/codebykenth/profilr');
 
         $defaultUsername = $request->query('username', '');
         if (! $defaultUsername && $hasToken) {
@@ -99,7 +99,7 @@ class ReadmeController extends Controller
         $baseUrl = $hostParam ? rtrim((string) $hostParam, '/') : rtrim(config('app.url') ?: $request->getSchemeAndHttpHost(), '/');
 
         $customHost = $hostParam ? rtrim((string) $hostParam, '/') : '';
-        $repoUrl = config('services.github.repo_url', 'https://github.com/codebykenth/github-readme-generator');
+        $repoUrl = config('services.github.repo_url', 'https://github.com/codebykenth/profilr');
 
         // Resolve username from token if not provided
         if (! $username) {

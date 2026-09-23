@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/github-readme-generator",
+    "name": "codebykenth/profilr",
     "type": "project",
     "description": "Generate dynamic SVG widgets and README templates for your GitHub profile.",
     "keywords": [

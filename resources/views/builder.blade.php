@@ -22,6 +22,10 @@
             <div class="app-title-group">
                 <span style="font-weight: 700; font-size: 15px;">Profilr</span>
                 <span class="app-badge">Interactive Workspace</span>
+                <span class="online-pill" title="People currently using Profilr">
+                    <span class="online-dot"></span>
+                    <span><span data-online-count>1</span> online</span>
+                </span>
                 <span id="header-user-badge" class="app-badge" style="display: none; background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3);">@<span id="header-username-text"></span></span>
             </div>
         </div>
@@ -858,6 +862,34 @@
         const repoUrl = '{{ $repoUrl }}';
         const savedCustomHost = localStorage.getItem('gh_readme_custom_host') || '';
 
+        // Live online count — heartbeat every 30s, silent on failure.
+        (function () {
+            function visitorId() {
+                try {
+                    let id = localStorage.getItem('profilr_visitor_id');
+                    if (!id) {
+                        id = (crypto.randomUUID ? crypto.randomUUID() : 'v-' + Date.now() + '-' + Math.floor(Math.random() * 1e9));
+                        localStorage.setItem('profilr_visitor_id', id);
+                    }
+                    return id;
+                } catch (e) {
+                    return '';
+                }
+            }
+            async function pingPresence() {
+                try {
+                    const res = await fetch('/api/presence?visitor=' + encodeURIComponent(visitorId()), { cache: 'no-store' });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (typeof data.online === 'number') {
+                        document.querySelectorAll('[data-online-count]').forEach(el => { el.textContent = data.online; });
+                    }
+                } catch (e) { /* offline — keep last count */ }
+            }
+            pingPresence();
+            setInterval(pingPresence, 30000);
+        })();
+
         // Theme color palettes (mirrored from ThemeService) used to theme the live preview.
         const THEME_COLORS = @json($themeColors);
 
@@ -1079,6 +1111,9 @@
             const theme = encodeURIComponent(state.theme || 'light');
 
             if (state.hostMode === 'custom' && state.customHost) {
+                if (key === 'trophies') {
+                    return `${state.customHost}/api/trophies?username=${user}&theme=${theme}&column=6&margin-w=4&no-frame=false&no-bg=false`;
+                }
                 return `${state.customHost}/api/${key}?username=${user}&theme=${theme}`;
             }
 
@@ -2292,7 +2327,7 @@
             if (state.trophies) {
                 const trophyLines = ['### 🏆 GitHub Trophies', '<p align="center">'];
                 if (state.hostMode === 'custom' && state.customHost) {
-                    trophyLines.push(`  <img src="${state.customHost}/api/trophies?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}" alt="GitHub Trophies" />`);
+                    trophyLines.push(`  <img src="${state.customHost}/api/trophies?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}&column=6&margin-w=4&no-frame=false&no-bg=false" alt="GitHub Trophies" />`);
                 } else {
                     trophyLines.push(`  <img src="https://github-profile-trophy.screw-hand.vercel.app/?username=${encodeURIComponent(user)}&theme=radical&no-frame=false&no-bg=false&margin-w=4" alt="GitHub Trophies" />`);
                 }
@@ -2512,7 +2547,7 @@
                 const trophyCdnFallback = 'https://github-trophies.devomb.com';
                 const isCustom = state.hostMode === 'custom' && state.customHost;
                 if (isCustom) {
-                    const selfTrophy = `${state.customHost}/api/trophies?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}`;
+                    const selfTrophy = `${state.customHost}/api/trophies?username=${encodeURIComponent(user)}&theme=${encodeURIComponent(state.theme)}&column=6&margin-w=4&no-frame=false&no-bg=false`;
                     sections.trophies = `<h3>🏆 GitHub Trophies</h3><p style="text-align: center;"><img src="${selfTrophy}" alt="Trophies" style="max-width: 100%; height: auto;" onerror="this.onerror=null; this.style.display='none';" /></p>`;
                 } else {
                     sections.trophies = `<h3>🏆 GitHub Trophies</h3><p style="text-align: center;"><img src="${trophyCdn}${trophyQuery}" alt="Trophies" style="max-width: 100%; height: auto;" onerror="this.onerror=null; this.src='${trophyCdnFallback}${trophyQuery}';" /></p>`;
