@@ -984,6 +984,7 @@
             skillsDetected: false,
             detectedForUser: '',
             detectedLanguages: [],
+            profileFetchedForUser: '',
             skillsCategoryFilter: 'all',
             skillsSearchQuery: '',
             hostMode: savedCustomHost ? 'custom' : 'community',
@@ -1292,6 +1293,11 @@
             // Auto-detect most used GitHub languages if not yet detected for this user
             if (username && username !== 'your-username' && state.detectedForUser !== username) {
                 detectTopLanguages(username, false);
+            }
+
+            // Smart defaults: prefill live preview from the user's real GitHub profile
+            if (username && username !== 'your-username' && state.profileFetchedForUser !== username) {
+                fetchGitHubProfileSmart(username, false);
             }
 
             // Pre-populate all input fields with current state defaults
@@ -1759,6 +1765,253 @@
             updateUI();
         }
 
+        const DEFAULT_TYPING_LINES = 'Full-Stack Developer; Laravel & React Enthusiast; Open Source Builder';
+        const SAMPLE_PROJECT_TITLE = 'DevPulse - Developer Activity Tracker';
+
+        // Hardcoded demo values are treated as empty by the smart prefill so a
+        // real user never ships links to /username or example.com. They remain
+        // as fallbacks when GitHub has no data for that field.
+        const PLACEHOLDER_VALUES = {
+            typingLines: [DEFAULT_TYPING_LINES],
+            workingOn: ['A GitHub profile README generator'],
+            learning: ['Cloud infrastructure & DevOps'],
+            collaborateOn: ['Open source projects'],
+            askMe: ['Laravel, React, TypeScript'],
+            funFact: ['I debug with console.log and I\'m proud of it'],
+            linkedin: ['https://linkedin.com/in/username'],
+            twitter: ['https://x.com/username'],
+            website: ['https://yourportfolio.dev'],
+            email: ['dev@example.com'],
+            buymeacoffee: ['username'],
+        };
+
+        const SMART_PROP_INPUT_IDS = {
+            displayName: 'config-display-name',
+            bio: 'config-bio',
+            bannerDesc: 'config-banner-desc',
+            typingLines: 'config-typing-lines',
+            workingOn: 'config-working-on',
+            askMe: 'config-ask-me',
+            projectsUrl: 'config-projects-url',
+            website: 'config-website',
+            email: 'config-email',
+            linkedin: 'config-linkedin',
+            twitter: 'config-twitter',
+            buymeacoffee: 'config-buymeacoffee',
+        };
+
+        let isFetchingProfile = false;
+
+        function isPlaceholderValue(prop, val) {
+            const placeholders = PLACEHOLDER_VALUES[prop];
+            if (!placeholders) {
+                return false;
+            }
+            return placeholders.includes((val || '').trim());
+        }
+
+        // Fill-empty-only setter: writes the value only when the field is blank
+        // or still holds a demo placeholder. Never overwrites user edits.
+        function setSmartDefault(prop, value) {
+            if (value === undefined || value === null) {
+                return false;
+            }
+            const clean = String(value).trim();
+            if (clean === '') {
+                return false;
+            }
+            const current = (state[prop] || '').trim();
+            if (current !== '' && !isPlaceholderValue(prop, current)) {
+                return false;
+            }
+            if (current === clean) {
+                return false;
+            }
+            state[prop] = clean;
+            const inputId = SMART_PROP_INPUT_IDS[prop];
+            const el = inputId ? document.getElementById(inputId) : null;
+            if (el) {
+                el.value = clean;
+            }
+            if (prop === 'displayName' || prop === 'bannerDesc') {
+                updateBannerThumbnail();
+            }
+            return true;
+        }
+
+        // Turn a GitHub bio into semicolon-separated typing-SVG lines.
+        // Falls back to '' so the caller can try top languages instead.
+        function buildTypingLinesFromBio(bio) {
+            const text = (bio || '').replace(/\s+/g, ' ').trim();
+            if (text === '') {
+                return '';
+            }
+            const parts = text
+                .split(/\s*[.|•]\s*|\s\|\s|\n+/)
+                .map(part => part.trim().replace(/;/g, ','))
+                .filter(Boolean);
+            const lines = (parts.length > 0 ? parts : [text.replace(/;/g, ',')])
+                .slice(0, 3)
+                .map(line => (line.length > 42 ? line.slice(0, 39).trimEnd() + '…' : line));
+            return lines.join('; ');
+        }
+
+        // Typing-lines fallback when the profile bio is empty.
+        function buildTypingLinesFromLanguages(langs) {
+            const clean = (langs || []).map(lang => (lang || '').trim()).filter(Boolean).slice(0, 3);
+            if (clean.length === 0) {
+                return '';
+            }
+            const title = str => str.charAt(0).toUpperCase() + str.slice(1);
+            if (clean.length === 1) {
+                return `${title(clean[0])} Developer; Open Source Builder`;
+            }
+            return `${title(clean[0])} Developer; Building with ${title(clean[0])} & ${title(clean[1])}; Open Source Builder`;
+        }
+
+        function normalizeBlogUrl(blog) {
+            let url = (blog || '').trim();
+            if (url === '' || url === '#') {
+                return '';
+            }
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+            try {
+                new URL(url);
+                return url;
+            } catch (err) {
+                return '';
+            }
+        }
+
+        function clearPlaceholderSocials() {
+            let cleared = false;
+            ['linkedin', 'twitter', 'website', 'email', 'buymeacoffee'].forEach(prop => {
+                const current = (state[prop] || '').trim();
+                if (current !== '' && isPlaceholderValue(prop, current)) {
+                    state[prop] = '';
+                    const el = document.getElementById(SMART_PROP_INPUT_IDS[prop]);
+                    if (el) {
+                        el.value = '';
+                    }
+                    cleared = true;
+                }
+            });
+            return cleared;
+        }
+
+        // Smart defaults: prefill live-preview fields from the user's real public
+        // GitHub profile + repositories. Fill-empty-only; demo placeholders count
+        // as empty. Silent on failure so hardcoded fallbacks stay intact.
+        async function fetchGitHubProfileSmart(username, force = false) {
+            const user = (username || state.username || '').trim();
+            if (user === '' || user === 'your-username') {
+                return;
+            }
+            if (!force && state.profileFetchedForUser === user) {
+                return;
+            }
+            if (isFetchingProfile) {
+                return;
+            }
+            isFetchingProfile = true;
+            try {
+                const profileResp = await fetch(`https://api.github.com/users/${encodeURIComponent(user)}`, {
+                    headers: { 'Accept': 'application/vnd.github.v3+json' }
+                });
+                if (!profileResp.ok) {
+                    return;
+                }
+                const profile = await profileResp.json();
+                state.profileFetchedForUser = user;
+
+                let changed = false;
+                changed = setSmartDefault('displayName', profile.name || profile.login || '') || changed;
+                changed = setSmartDefault('bio', profile.bio || '') || changed;
+                const shortBio = (profile.bio || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+                changed = setSmartDefault('bannerDesc', shortBio) || changed;
+                changed = setSmartDefault('website', normalizeBlogUrl(profile.blog)) || changed;
+                changed = setSmartDefault('email', profile.email || '') || changed;
+                changed = setSmartDefault('projectsUrl', profile.html_url ? `${profile.html_url}?tab=repositories` : '') || changed;
+
+                let repos = [];
+                try {
+                    const reposResp = await fetch(`https://api.github.com/users/${encodeURIComponent(user)}/repos?sort=pushed&per_page=100`, {
+                        headers: { 'Accept': 'application/vnd.github.v3+json' }
+                    });
+                    if (reposResp.ok) {
+                        const data = await reposResp.json();
+                        if (Array.isArray(data)) {
+                            repos = data;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('GitHub repos prefill unavailable:', err);
+                }
+
+                if (repos.length > 0) {
+                    const ownRepos = repos.filter(repo => !repo.fork);
+                    const pool = ownRepos.length > 0 ? ownRepos : repos;
+
+                    if (pool[0] && pool[0].name) {
+                        changed = setSmartDefault('workingOn', pool[0].name) || changed;
+                    }
+
+                    const primaries = [...new Set(pool.map(repo => (repo.language || '').trim()).filter(Boolean))].slice(0, 3);
+                    if (primaries.length > 0) {
+                        changed = setSmartDefault('askMe', primaries.join(', ')) || changed;
+                    }
+
+                    const isSampleProjects = state.projects.length === 1 && state.projects[0].title === SAMPLE_PROJECT_TITLE;
+                    if (isSampleProjects) {
+                        const top = [...pool]
+                            .sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0))
+                            .slice(0, 4);
+                        if (top.length > 0) {
+                            state.projects = top.map(repo => ({
+                                title: repo.name || 'Featured Project',
+                                description: repo.description || '',
+                                thumbnail: '',
+                                liveUrl: repo.homepage || '',
+                                repoUrl: repo.html_url || '',
+                                techStack: repo.language || ''
+                            }));
+                            renderProjectsList();
+                            changed = true;
+                        }
+                    }
+                }
+
+                // Typing lines: real bio first, top languages as fallback.
+                const bioLines = buildTypingLinesFromBio(profile.bio);
+                if (bioLines !== '') {
+                    changed = setSmartDefault('typingLines', bioLines) || changed;
+                } else if (repos.length > 0) {
+                    const pool = repos.filter(repo => !repo.fork).length > 0 ? repos.filter(repo => !repo.fork) : repos;
+                    const primaries = [...new Set(pool.map(repo => (repo.language || '').trim()).filter(Boolean))].slice(0, 3);
+                    const langLines = buildTypingLinesFromLanguages(primaries);
+                    if (langLines !== '') {
+                        changed = setSmartDefault('typingLines', langLines) || changed;
+                    }
+                }
+
+                // Drop demo placeholder links that have no real data behind them.
+                changed = clearPlaceholderSocials() || changed;
+
+                if (changed) {
+                    updateBannerThumbnail();
+                    updateUI();
+                } else {
+                    saveStateToStorage();
+                }
+            } catch (err) {
+                console.warn('GitHub profile prefill error:', err);
+            } finally {
+                isFetchingProfile = false;
+            }
+        }
+
         const gitHubLangToSkills = {
             'javascript': ['js'],
             'typescript': ['ts'],
@@ -1827,11 +2080,11 @@
                 let topLangs = await fetchWidgetTopLanguages(user);
 
                 if (topLangs.length === 0) {
-                    topLangs = await fetchPrimaryLanguages(user);
+                    topLangs = await fetchGithubLanguages(user);
                 }
 
                 if (topLangs.length === 0) {
-                    if (force) alert(`Could not detect primary programming languages from @${user}'s repositories.`);
+                    if (force) alert(`Could not detect programming languages from @${user}'s repositories.`);
                     return;
                 }
 
@@ -1854,6 +2107,14 @@
                     state.skillsDetected = true;
                     state.detectedForUser = user;
                     state.detectedLanguages = topLangs.slice(0, 5);
+
+                    // Smart default: no bio → fall back to byte-accurate languages for typing lines.
+                    if (!(state.bio || '').trim()) {
+                        const langLines = buildTypingLinesFromLanguages(topLangs);
+                        if (langLines !== '') {
+                            setSmartDefault('typingLines', langLines);
+                        }
+                    }
 
                     updateSkillsUI();
                     updateUI();
@@ -1907,7 +2168,11 @@
             }
         }
 
-        async function fetchPrimaryLanguages(user) {
+        // Byte-based language aggregation (same method as the Top Languages
+        // widget) so the auto-detected tech stack matches the widget. A repo's
+        // single primary language hides embedded HTML/JS, which is why the
+        // strip used to show fewer languages than the widget.
+        async function fetchGithubLanguages(user) {
             const resp = await fetch(`https://api.github.com/users/${encodeURIComponent(user)}/repos?sort=pushed&per_page=100`, {
                 headers: { 'Accept': 'application/vnd.github.v3+json' }
             });
@@ -1921,7 +2186,59 @@
                 return [];
             }
 
-            // Tally primary languages weighted by stars & activity
+            const byBytes = await aggregateLanguageBytes(user, repos);
+            if (byBytes.length > 0) {
+                return byBytes;
+            }
+
+            return tallyPrimaryLanguages(repos);
+        }
+
+        // Sum language bytes across the user's own recently-pushed repos.
+        // Limited to a handful of repos (batched) to stay within the
+        // unauthenticated GitHub API rate limit. Returns [] on failure so the
+        // caller can fall back to the primary-language tally.
+        async function aggregateLanguageBytes(user, repos, maxRepos = 12) {
+            const targets = repos.filter(repo => !repo.fork).slice(0, maxRepos);
+            if (targets.length === 0) {
+                return [];
+            }
+
+            // Mirrors NON_CODE_LANGUAGES in GitHubService: not real code.
+            const nonCode = new Set([
+                'git', 'git config', 'git ignore', 'git links', 'git lfs pointer',
+                'markdown', 'text', 'json', 'yaml', 'toml', 'xml', 'csv', 'tsv',
+                'ini', 'properties', 'bibtex', 'restructuredtext', 'org',
+                'textile', 'rdoc', 'creole', 'mediawiki', 'asciidoc', 'editorconfig'
+            ]);
+
+            const totals = {};
+            for (let i = 0; i < targets.length; i += 4) {
+                const batch = targets.slice(i, i + 4);
+                const results = await Promise.allSettled(batch.map(repo =>
+                    fetch(`https://api.github.com/repos/${encodeURIComponent(user)}/${encodeURIComponent(repo.name)}/languages`, {
+                        headers: { 'Accept': 'application/vnd.github.v3+json' }
+                    }).then(res => (res.ok ? res.json() : {}))
+                ));
+                results.forEach(result => {
+                    if (result.status !== 'fulfilled' || !result.value) {
+                        return;
+                    }
+                    Object.entries(result.value).forEach(([lang, bytes]) => {
+                        const key = (lang || '').trim().toLowerCase();
+                        if (!key || nonCode.has(key)) {
+                            return;
+                        }
+                        totals[key] = (totals[key] || 0) + bytes;
+                    });
+                });
+            }
+
+            return Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+        }
+
+        // Fallback: tally each repo's primary language weighted by stars & activity.
+        function tallyPrimaryLanguages(repos) {
             const langScores = {};
             repos.forEach(repo => {
                 const lang = repo.language;
@@ -2813,6 +3130,9 @@
                         if (newU && newU !== 'your-username' && state.detectedForUser !== newU) {
                             detectTopLanguages(newU, false);
                         }
+                        if (newU && newU !== 'your-username' && state.profileFetchedForUser !== newU) {
+                            fetchGitHubProfileSmart(newU, false);
+                        }
                     });
                 }
             }
@@ -2885,6 +3205,7 @@
                     skills: state.skills,
                     skillsDetected: state.skillsDetected,
                     detectedForUser: state.detectedForUser || '',
+                    profileFetchedForUser: state.profileFetchedForUser || '',
                     detectedLanguages: state.detectedLanguages,
                     hostMode: state.hostMode,
                     customHost: state.customHost,

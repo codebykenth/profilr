@@ -27,6 +27,7 @@
         "VIEW_COMPILED_PATH": "/tmp/views",
         "LOG_CHANNEL": "stderr",
         "CACHE_STORE": "array",
-        "SESSION_DRIVER": "array"
+        "SESSION_DRIVER": "array",
+        "ENABLE_API": "true"
     }
 }

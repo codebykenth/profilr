@@ -1,14 +1,20 @@
 <div align="center">
 
-# 🎨 GitHub README Generator
+# 🎨 Profilr - GitHub README Generator
 
 **Dynamic SVG widgets for your GitHub profile README**
 
 Stats • Languages • Streak • Profile • Pinned Repos
 
-[![Import to Vercel](https://vercel.com/button)](https://vercel.com/new)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodebykenth%2Fprofilr&env=GITHUB_TOKEN&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read%3Auser%2Crepo%20scopes)%20to%20enable%20stats%20fetching.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens)
 
 </div>
+
+---
+
+### About Profilr
+
+Profilr is an open-source tool that generates dynamic, customizable SVG widgets for your GitHub profile README. Built with Laravel and designed for free, one-click serverless deployment on Vercel, it connects directly to the GitHub GraphQL API to display real-time contribution stats, streaks, top languages, and pinned repositories, all with dedicated rate limits and support for private repo data.
 
 ---
 
@@ -25,14 +31,13 @@ Stats • Languages • Streak • Profile • Pinned Repos
 Click the **Fork** button at the top right of this repository to create your own copy.
 
 ### 2. Deploy to Vercel
-1. Go to [vercel.com/new](https://vercel.com/new)
+1. Click **Deploy with Vercel** above or go to [vercel.com/new](https://vercel.com/new)
 2. Import your forked repository
-3. Add the following environment variables:
+3. Add the following environment variable when prompted (all others like `ENABLE_API` are pre-filled via `vercel.json`):
 
 | Variable | Value | Required | Description |
 |----------|-------|----------|-------------|
 | `GITHUB_TOKEN` | Your [GitHub Personal Access Token](https://github.com/settings/tokens) | ✅ | Authenticates GraphQL requests for stats |
-| `ENABLE_API` | `true` | ✅ | Enables `/api/*` endpoints on your deployment |
 
 > **Token scopes needed:** `read:user` (public data) and optionally `repo` (for private repo stats)
 
