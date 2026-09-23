@@ -4,11 +4,29 @@ use App\Http\Controllers\ReadmeController;
 use App\Http\Controllers\WidgetController;
 use Illuminate\Support\Facades\Route;
 
-// Landing page
-Route::get('/', [ReadmeController::class, 'landing'])->name('home');
+// Landing page + builder UI — only on the main instance (ENABLE_UI=true).
+// Forked deployments default to ENABLE_UI=false and are API-only, so the
+// owner keeps exclusive access to the landing page. NOTE: keep the route
+// names registered in both branches so route('home') / route('builder')
+// calls inside Blade views never throw RouteNotFoundException.
+if (config('services.github.enable_ui', false)) {
+    Route::get('/', [ReadmeController::class, 'landing'])->name('home');
+    Route::get('/builder', [ReadmeController::class, 'builder'])->name('builder');
+} else {
+    Route::get('/', function () {
+        return response()->json([
+            'status' => 'api-only',
+            'message' => 'This is an API-only instance. The landing page and builder UI are disabled here and only available on the main instance.',
+            'ui' => config('services.github.ui_url'),
+            'repo' => config('services.github.repo_url', 'https://github.com/codebykenth/profilr'),
+            'endpoints' => ['/api/stats', '/api/languages', '/api/streak', '/api/profile', '/api/pinned', '/api/readme'],
+        ], 404);
+    })->name('home');
 
-// Interactive Profile & README Builder
-Route::get('/builder', [ReadmeController::class, 'builder'])->name('builder');
+    Route::get('/builder', function () {
+        abort(404, 'Builder UI is disabled on API-only instances.');
+    })->name('builder');
+}
 
 // Widget SVG endpoints (only registered if ENABLE_API=true in self-hosted deployments)
 if (config('services.github.enable_api', false)) {
