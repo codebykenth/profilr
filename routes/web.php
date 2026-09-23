@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\ReadmeController;
 use App\Http\Controllers\WidgetController;
 use Illuminate\Support\Facades\Route;
@@ -10,9 +9,6 @@ Route::get('/', [ReadmeController::class, 'landing'])->name('home');
 
 // Interactive Profile & README Builder
 Route::get('/builder', [ReadmeController::class, 'builder'])->name('builder');
-
-// Live presence heartbeat — always enabled (no GitHub token needed, no DB needed).
-Route::get('/api/presence', [PresenceController::class, 'show'])->name('api.presence');
 
 // Widget SVG endpoints (only registered if ENABLE_API=true in self-hosted deployments)
 if (config('services.github.enable_api', false)) {

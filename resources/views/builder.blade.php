@@ -22,10 +22,6 @@
             <div class="app-title-group">
                 <span style="font-weight: 700; font-size: 15px;">Profilr</span>
                 <span class="app-badge">Interactive Workspace</span>
-                <span class="online-pill" title="People currently using Profilr">
-                    <span class="online-dot"></span>
-                    <span><span data-online-count>1</span> online</span>
-                </span>
                 <span id="header-user-badge" class="app-badge" style="display: none; background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3);">@<span id="header-username-text"></span></span>
             </div>
         </div>
@@ -861,34 +857,6 @@
     <script>
         const repoUrl = '{{ $repoUrl }}';
         const savedCustomHost = localStorage.getItem('gh_readme_custom_host') || '';
-
-        // Live online count — heartbeat every 30s, silent on failure.
-        (function () {
-            function visitorId() {
-                try {
-                    let id = localStorage.getItem('profilr_visitor_id');
-                    if (!id) {
-                        id = (crypto.randomUUID ? crypto.randomUUID() : 'v-' + Date.now() + '-' + Math.floor(Math.random() * 1e9));
-                        localStorage.setItem('profilr_visitor_id', id);
-                    }
-                    return id;
-                } catch (e) {
-                    return '';
-                }
-            }
-            async function pingPresence() {
-                try {
-                    const res = await fetch('/api/presence?visitor=' + encodeURIComponent(visitorId()), { cache: 'no-store' });
-                    if (!res.ok) return;
-                    const data = await res.json();
-                    if (typeof data.online === 'number') {
-                        document.querySelectorAll('[data-online-count]').forEach(el => { el.textContent = data.online; });
-                    }
-                } catch (e) { /* offline — keep last count */ }
-            }
-            pingPresence();
-            setInterval(pingPresence, 30000);
-        })();
 
         // Theme color palettes (mirrored from ThemeService) used to theme the live preview.
         const THEME_COLORS = @json($themeColors);

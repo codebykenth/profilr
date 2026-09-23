@@ -26,10 +26,6 @@
                 <span>Profilr</span>
             </a>
             <div class="nav-links">
-                <span class="online-pill" title="People currently using Profilr">
-                    <span class="online-dot"></span>
-                    <span><span data-online-count>1</span> online</span>
-                </span>
                 <a href="#features">Features</a>
                 <a href="#workflow">Workflow</a>
                 <a href="{{ $repoUrl }}" target="_blank">Repository</a>
@@ -183,34 +179,6 @@ builder.render();</code>
     </footer>
 
     <script>
-        // Live online count — heartbeat every 30s, silent on failure.
-        (function () {
-            function visitorId() {
-                try {
-                    let id = localStorage.getItem('profilr_visitor_id');
-                    if (!id) {
-                        id = (crypto.randomUUID ? crypto.randomUUID() : 'v-' + Date.now() + '-' + Math.floor(Math.random() * 1e9));
-                        localStorage.setItem('profilr_visitor_id', id);
-                    }
-                    return id;
-                } catch (e) {
-                    return '';
-                }
-            }
-            async function pingPresence() {
-                try {
-                    const res = await fetch('/api/presence?visitor=' + encodeURIComponent(visitorId()), { cache: 'no-store' });
-                    if (!res.ok) return;
-                    const data = await res.json();
-                    if (typeof data.online === 'number') {
-                        document.querySelectorAll('[data-online-count]').forEach(el => { el.textContent = data.online; });
-                    }
-                } catch (e) { /* offline — keep last count */ }
-            }
-            pingPresence();
-            setInterval(pingPresence, 30000);
-        })();
-
         function switchTeaserTab(type, btn) {
             document.querySelectorAll('.showcase-tab').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
