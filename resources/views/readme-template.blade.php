@@ -167,7 +167,7 @@
 </p>
 @else
 <p align="center">
-  <img src="https://github-profile-trophy.vercel.app/?username={{ $username }}&theme=radical&no-frame=false&no-bg=false&margin-w=4" alt="GitHub Trophies" />
+  <img src="https://github-profile-trophy.screw-hand.vercel.app/?username={{ $username }}&theme=radical&no-frame=false&no-bg=false&margin-w=4" alt="GitHub Trophies" />
 </p>
 @endif
 

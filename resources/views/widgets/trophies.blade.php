@@ -1,24 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="495" height="250" viewBox="0 0 495 250" fill="none">
-    <rect x="0.5" y="0.5" rx="8" width="494" height="249" fill="{{ $theme['bg'] }}" stroke="{{ $theme['border'] }}"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="{{ $cardW }}" height="{{ $cardH }}" viewBox="0 0 {{ $cardW }} {{ $cardH }}" fill="none">
+    <rect x="0.5" y="0.5" rx="8" width="{{ $cardW - 1 }}" height="{{ $cardH - 1 }}" fill="{{ $theme['bg'] }}" stroke="{{ $theme['border'] }}"/>
 
-    <g transform="translate(25, 35)">
+    <g transform="translate({{ $padX }}, 36)">
         <text class="header">{{ $username }}'s GitHub Trophies</text>
     </g>
 
-    <g transform="translate(25, 60)">
+    <g transform="translate({{ $padX }}, {{ $padY }})">
         @foreach ($trophies as $trophy)
             <g transform="translate({{ $trophy['x'] }}, {{ $trophy['y'] }})">
-                <rect width="{{ $tileW }}" height="80" rx="6" fill="{{ $theme['ring'] }}" opacity="0.45"/>
+                <rect width="{{ $tileW }}" height="{{ $tileH }}" rx="8" fill="{{ $theme['ring'] }}" fill-opacity="0.35" stroke="{{ $theme['border'] }}" stroke-opacity="0.8"/>
 
-                <svg class="icon" viewBox="0 0 16 16" width="20" height="20" x="14" y="16">
+                <rect x="12" y="14" width="36" height="36" rx="8" fill="{{ $theme['bg'] }}" fill-opacity="0.65"/>
+                <svg class="icon" viewBox="0 0 16 16" width="22" height="22" x="19" y="21">
                     <path d="{{ $trophy['icon'] }}"/>
                 </svg>
 
-                <circle cx="196" cy="20" r="10" fill="{{ $trophy['rankColor'] }}"/>
-                <text class="trophy-rank" x="196" y="24" text-anchor="middle" fill="#ffffff">{{ $trophy['rank'] }}</text>
+                <circle cx="{{ $tileW - 24 }}" cy="24" r="12" fill="{{ $trophy['rankColor'] }}"/>
+                <text class="trophy-rank" x="{{ $tileW - 24 }}" y="28" text-anchor="middle" fill="#0d1117">{{ $trophy['rank'] }}</text>
 
-                <text class="trophy-title" x="14" y="58">{{ $trophy['title'] }}</text>
-                <text class="trophy-value" x="{{ $tileW - 14 }}" y="58" text-anchor="end">{{ $trophy['value'] }}</text>
+                <text class="trophy-title" x="14" y="64">{{ $trophy['title'] }}</text>
+                <text class="trophy-value" x="{{ $tileW - 14 }}" y="64" text-anchor="end">{{ $trophy['value'] }}</text>
             </g>
         @endforeach
     </g>
