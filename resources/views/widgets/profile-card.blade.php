@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="495" height="195" viewBox="0 0 495 195" fill="none">
-    <rect x="0.5" y="0.5" rx="8" width="494" height="194" fill="{{ $theme['bg'] }}" stroke="{{ $theme['border'] }}"/>
-
-    {{-- Avatar circle --}}
+@php
+    // Profile Card Widget: Displays avatar, name, bio, and follower stats.
+    // Receives $profile from GitHubService::getUserProfile() and $theme from ThemeService::get().
+    $displayName = $profile['name'] ?: $profile['login'];
+@endphp
+@include('components.widget-card', ['theme' => $theme, 'width' => 495, 'height' => 195])
+    {{-- Avatar circle with clip-path for rounded image --}}
     <g transform="translate(25, 25)">
         <defs>
             <clipPath id="avatar-clip">
@@ -15,14 +18,14 @@
         @endif
     </g>
 
-    {{-- Name & Bio --}}
+    {{-- Name and bio text --}}
     <g transform="translate(120, 35)">
-        <text class="name animate" style="animation-delay: 0ms">{{ $profile['displayName'] }}</text>
-        <text class="username animate" style="animation-delay: 100ms" y="22">{{ '@' . $profile['login'] }}</text>
+        <text class="name animate" style="animation-delay: 0ms">{{ $displayName }}</text>
+        <text class="username animate" style="animation-delay: 100ms" y="22">@{{ $profile['login'] }}</text>
         <text class="bio animate" style="animation-delay: 200ms" y="45">{{ $profile['bio'] }}</text>
     </g>
 
-    {{-- Stats row --}}
+    {{-- Stats row: followers, following, repos, member since --}}
     <g transform="translate(120, 130)">
         <g class="animate" style="animation-delay: 300ms">
             <text class="meta-value">{{ $profile['followers'] }}</text>

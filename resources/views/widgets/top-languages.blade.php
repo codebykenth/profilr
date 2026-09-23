@@ -1,11 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="495" height="{{ $cardHeight }}" viewBox="0 0 495 {{ $cardHeight }}" fill="none">
-    <rect x="0.5" y="0.5" rx="8" width="494" height="{{ $cardHeight - 1 }}" fill="{{ $theme['bg'] }}" stroke="{{ $theme['border'] }}"/>
-
+@include('components.widget-card', ['theme' => $theme, 'width' => 495, 'height' => $cardHeight])
     <g transform="translate(25, 35)">
         <text class="header">Most Used Languages</text>
     </g>
 
-    {{-- Language progress bar --}}
+    {{-- Language progress bar with mask for clipping --}}
     <g transform="translate(22, 55)">
         <mask id="bar-mask">
             <rect x="0" y="0" width="{{ $barWidth }}" height="8" rx="4" fill="white"/>
@@ -18,7 +16,7 @@
         </g>
     </g>
 
-    {{-- Language list --}}
+    {{-- Language list rendered as rows with colored circles --}}
     <g transform="translate(22, 80)">
         @foreach ($listItems as $item)
             <g class="lang-row" style="animation-delay: {{ $item['delay'] }}ms" transform="translate({{ $item['x'] }}, {{ $item['y'] }})">

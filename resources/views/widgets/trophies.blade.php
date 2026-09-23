@@ -1,4 +1,6 @@
 @php
+    // Trophies Widget: Renders GitHub profile trophies using the theme's color palette.
+    // Receives $trophies array, $cardW, $cardH, $panel, $noFrame, $noBg from WidgetController::trophies().
     $fontFamily = 'Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji';
     $frameColor = $theme['border'] ?? '#e1e4e8';
     $background = $theme['bg'] ?? '#ffffff';
@@ -10,6 +12,8 @@
     $barX = 15;
     $barY = 101;
 
+    // Maps a rank letter to its color palette for trophy rendering.
+    // S/SS/SSS use gold, A/AA/AAA use silver, B uses bronze, others use gray.
     $rankPalette = function (string $rank): array {
         $first = substr($rank, 0, 1);
         if ($first === 'S') {
@@ -24,11 +28,13 @@
         return ['base' => '#777777', 'shadow' => '#333333', 'text' => '#333333', 'laurel' => false];
     };
 
+    // SVG path data for the trophy cup icon used across all trophy panels.
     $cupPaths = '<path d="M7 10h2v4H7v-4z"/><path d="M10 11c0 .552-.895 1-2 1s-2-.448-2-1 .895-1 2-1 2 .448 2 1z"/><path fill-rule="evenodd" d="M12.5 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-3 2a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm-6-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-3 2a3 3 0 1 1 6 0 3 3 0 0 1-6 0z"/><path d="M3 1h10c-.495 3.467-.5 10-5 10S3.495 4.467 3 1zm0 15a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1H3zm2-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1H5z"/>';
 @endphp
-<svg xmlns="http://www.w3.org/2000/svg" width="{{ $cardW }}" height="{{ $cardH }}" viewBox="0 0 {{ $cardW }} {{ $cardH }}" fill="none">
+@include('components.widget-card', ['theme' => $theme, 'width' => $cardW, 'height' => $cardH])
 @foreach ($trophies as $index => $trophy)
 @php
+    // Resolve the color palette and dimensions for each trophy panel.
     $palette = $rankPalette($trophy['rank']);
     $rankLetter = substr($trophy['rank'], 0, 1);
     $extraIcons = max(0, strlen($trophy['rank']) - 1);
