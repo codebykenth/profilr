@@ -63,7 +63,15 @@ class WidgetController extends Controller
             $langArray = array_values($data);
             $count = count($langArray);
             $barWidth = 450;
-            $cardHeight = 45 + ($count * 40) + 35;
+            $listTop = 80;
+            $rowHeight = 30;
+            $bottomPad = 18;
+            $cols = 2;
+            $colWidth = 225;
+            $rows = max(1, (int) ceil($count / $cols));
+            $cardHeight = $count > 0
+                ? $listTop + (($rows - 1) * $rowHeight) + 16 + $bottomPad
+                : $listTop + $bottomPad;
 
             $offset = 0.0;
             $barItems = [];
@@ -80,14 +88,16 @@ class WidgetController extends Controller
 
             $listItems = [];
             foreach ($langArray as $index => $lang) {
-                $col = $index % 2;
-                $row = intdiv($index, 2);
+                // Column-major fill: top half down the left column, rest down the right.
+                // 8 languages => 4 rows left + 4 rows right.
+                $col = (int) floor($index / $rows);
+                $row = $index % $rows;
                 $listItems[] = [
-                    'x' => $col * 225,
-                    'y' => $row * 28,
+                    'x' => $col * $colWidth,
+                    'y' => $row * $rowHeight,
                     'delay' => $index * 100,
                     'color' => $lang['color'],
-                    'name' => $lang['name'],
+                    'name' => mb_strimwidth($lang['name'], 0, 16, '…'),
                     'percentage' => $lang['percentage'],
                 ];
             }
@@ -229,7 +239,7 @@ class WidgetController extends Controller
     }
 
     /**
-     * GET /api/trophies — Self-hosted GitHub trophies SVG.
+     * GET /api/trophies — Self-hosted GitHub trophies SVG (uses this instance's GITHUB_TOKEN).
      */
     public function trophies(Request $request): Response
     {
@@ -242,15 +252,22 @@ class WidgetController extends Controller
                 ['icon' => self::ICONS['commit'], 'title' => 'Total Commits', 'value' => number_format($data['totalCommits']), 'count' => $data['totalCommits']],
                 ['icon' => self::ICONS['pr'], 'title' => 'Total Pull Requests', 'value' => number_format($data['totalPRs']), 'count' => $data['totalPRs']],
                 ['icon' => self::ICONS['issue'], 'title' => 'Total Issues', 'value' => number_format($data['totalIssues']), 'count' => $data['totalIssues']],
+                ['icon' => self::ICONS['commit'], 'title' => 'Contributions (Year)', 'value' => number_format($data['totalContributions']), 'count' => $data['totalContributions']],
+                ['icon' => self::ICONS['star'], 'title' => 'Followers', 'value' => number_format($profile['followers']), 'count' => $profile['followers']],
             ];
 
+            $cols = 3;
+            $tileW = 200;
+            $tileH = 88;
+            $gapX = 14;
+            $gapY = 14;
             $trophies = [];
             foreach ($stats as $index => $stat) {
                 [$rank, $rankColor] = $this->trophyRank($stat['count']);
 
                 $trophies[] = [
-                    'x' => ($index % 2) * 225,
-                    'y' => intdiv($index, 2) * 95,
+                    'x' => ($index % $cols) * ($tileW + $gapX),
+                    'y' => intdiv($index, $cols) * ($tileH + $gapY),
                     'icon' => $stat['icon'],
                     'rank' => $rank,
                     'rankColor' => $rankColor,
@@ -259,11 +276,20 @@ class WidgetController extends Controller
                 ];
             }
 
+            $rows = (int) ceil(count($trophies) / $cols);
+            $cardW = 40 + ($cols * $tileW) + (($cols - 1) * $gapX) + 40;
+            $cardH = 70 + ($rows * $tileH) + (($rows - 1) * $gapY) + 30;
+
             return view('widgets.trophies', [
                 'theme' => $theme,
                 'username' => $profile['login'] ?: 'GitHub',
                 'trophies' => $trophies,
-                'tileW' => 210,
+                'tileW' => $tileW,
+                'tileH' => $tileH,
+                'cardW' => $cardW,
+                'cardH' => $cardH,
+                'padX' => 40,
+                'padY' => 70,
             ])->render();
         });
     }
