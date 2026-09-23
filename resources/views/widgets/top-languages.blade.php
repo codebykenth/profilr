@@ -22,9 +22,9 @@
     <g transform="translate(22, 80)">
         @foreach ($listItems as $item)
             <g class="lang-row" style="animation-delay: {{ $item['delay'] }}ms" transform="translate({{ $item['x'] }}, {{ $item['y'] }})">
-                <circle cx="5" cy="6" r="5" fill="{{ $item['color'] }}"/>
-                <text class="lang-name" x="15" y="10">{{ $item['name'] }}</text>
-                <text class="lang-pct" x="120" y="10">{{ $item['percentage'] }}%</text>
+                <circle cx="7" cy="8" r="6" fill="{{ $item['color'] }}"/>
+                <text class="lang-name" x="20" y="13">{{ $item['name'] }}</text>
+                <text class="lang-pct" x="200" y="13" text-anchor="end">{{ $item['percentage'] }}%</text>
             </g>
         @endforeach
     </g>
