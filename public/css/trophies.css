@@ -1,0 +1,5 @@
+.header { font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-title); }
+.icon { fill: var(--theme-icon); }
+.trophy-title { font: 500 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-text); }
+.trophy-value { font: 700 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-text); }
+.trophy-rank { font: 700 11px 'Segoe UI', Ubuntu, Sans-Serif; }

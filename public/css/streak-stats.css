@@ -1,0 +1,7 @@
+.header { font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-title); }
+.stat-value { font: 700 28px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-text); }
+.stat-label { font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-text); opacity: 0.7; }
+.stat-date { font: 400 10px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-text); opacity: 0.5; }
+.divider { stroke: var(--theme-border); stroke-width: 1; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.fire { animation: pulse 2s ease-in-out infinite; fill: var(--theme-icon); }

@@ -1,0 +1,6 @@
+.header { font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-title); }
+.repo-name { font: 600 13px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-accent); }
+.repo-desc { font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-text); opacity: 0.8; }
+.repo-meta { font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif; fill: var(--theme-text); opacity: 0.6; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.repo-card { animation: fadeIn 0.4s ease forwards; opacity: 0; }
