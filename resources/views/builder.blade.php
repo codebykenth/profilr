@@ -856,7 +856,7 @@
     {{-- Interactive Client Logic --}}
     <script>
         const repoUrl = '{{ $repoUrl }}';
-        const savedCustomHost = localStorage.getItem('gh_readme_custom_host') || '';
+        const savedCustomHost = normalizeHost(localStorage.getItem('gh_readme_custom_host') || '');
 
         // Theme color palettes (mirrored from ThemeService) used to theme the live preview.
         const THEME_COLORS = @json($themeColors);
@@ -2936,9 +2936,10 @@
             updateUI();
         }
 
-        // Normalize a pasted Vercel URL to the bare origin so API paths built as
-        // {host}/api/... always resolve. Accepts with or without scheme and with or
-        // without a trailing /api (so pasting https://app.vercel.app/api just works).
+        // Normalize a pasted Vercel URL to the bare origin. Every widget URL is
+        // built as {host}/api/{endpoint}; Vercel maps that outer /api to the PHP
+        // function, so the bare origin plus one appended /api resolves correctly.
+        // Accepts with or without scheme and with or without a trailing /api.
         function normalizeHost(raw) {
             let host = (raw || '').trim();
             if (!host) return '';
@@ -3229,6 +3230,10 @@
                 Object.keys(saved).forEach(key => {
                     if (key === 'widgets' && saved.widgets) {
                         state.widgets = { ...state.widgets, ...saved.widgets };
+                        return;
+                    }
+                    if (key === 'customHost') {
+                        state.customHost = normalizeHost(saved.customHost);
                         return;
                     }
                     if (key in state && saved[key] !== undefined) {

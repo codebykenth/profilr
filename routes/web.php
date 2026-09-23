@@ -30,16 +30,14 @@ if (config('services.github.enable_ui', false)) {
 
 // Widget SVG endpoints (only registered if ENABLE_API=true in self-hosted deployments)
 if (config('services.github.enable_api', false)) {
-    Route::prefix('api')->group(function () {
-        Route::get('/stats', [WidgetController::class, 'stats'])->name('widget.stats');
-        Route::get('/languages', [WidgetController::class, 'languages'])->name('widget.languages');
-        Route::get('/streak', [WidgetController::class, 'streak'])->name('widget.streak');
-        Route::get('/snake', [WidgetController::class, 'snake'])->name('widget.snake');
-        Route::get('/profile', [WidgetController::class, 'profile'])->name('widget.profile');
-        Route::get('/pinned', [WidgetController::class, 'pinned'])->name('widget.pinned');
-        Route::get('/trophies', [WidgetController::class, 'trophies'])->name('widget.trophies');
-        Route::get('/readme', [ReadmeController::class, 'generate'])->name('readme.generate');
-    });
+    Route::get('/stats', [WidgetController::class, 'stats'])->name('widget.stats');
+    Route::get('/languages', [WidgetController::class, 'languages'])->name('widget.languages');
+    Route::get('/streak', [WidgetController::class, 'streak'])->name('widget.streak');
+    Route::get('/snake', [WidgetController::class, 'snake'])->name('widget.snake');
+    Route::get('/profile', [WidgetController::class, 'profile'])->name('widget.profile');
+    Route::get('/pinned', [WidgetController::class, 'pinned'])->name('widget.pinned');
+    Route::get('/trophies', [WidgetController::class, 'trophies'])->name('widget.trophies');
+    Route::get('/readme', [ReadmeController::class, 'generate'])->name('readme.generate');
 } else {
     Route::any('/api/{any?}', function () {
         return response()->json([
