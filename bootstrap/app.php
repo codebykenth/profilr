@@ -20,6 +20,13 @@ if (getenv('VERCEL')) {
         'LOG_CHANNEL' => 'stderr',
         'APP_ENV' => 'production',
         'APP_DEBUG' => 'false',
+        'APP_CONFIG_CACHE' => '/tmp/config.php',
+        'APP_EVENTS_CACHE' => '/tmp/events.php',
+        'APP_PACKAGES_CACHE' => '/tmp/packages.php',
+        'APP_ROUTES_CACHE' => '/tmp/routes.php',
+        'APP_SERVICES_CACHE' => '/tmp/services.php',
+        'ENABLE_API' => true,
+        'ENABLE_UI' => false,
     ] as $key => $fallback) {
         if (getenv($key) === false || getenv($key) === '') {
             putenv("{$key}={$fallback}");

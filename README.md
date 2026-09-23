@@ -6,7 +6,7 @@
 
 Stats • Languages • Streak • Profile • Pinned Repos
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodebykenth%2Fprofilr&project-name=profilr&repository-name=profilr&env=GITHUB_TOKEN&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read%3Auser%2Crepo%20scopes)%20to%20enable%20stats%20fetching.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodebykenth%2Fprofilr&project-name=profilr&repository-name=profilr&env=GITHUB_TOKEN,APP_ENV,APP_DEBUG,APP_CONFIG_CACHE,APP_EVENTS_CACHE,APP_PACKAGES_CACHE,APP_ROUTES_CACHE,APP_SERVICES_CACHE,VIEW_COMPILED_PATH,LOG_CHANNEL,CACHE_STORE,SESSION_DRIVER&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token. The other variables are runtime defaults for self-hosting (APP_ENV=production, APP_DEBUG=false, APP_CONFIG_CACHE=/tmp/config.php, APP_EVENTS_CACHE=/tmp/events.php, APP_PACKAGES_CACHE=/tmp/packages.php, APP_ROUTES_CACHE=/tmp/routes.php, APP_SERVICES_CACHE=/tmp/services.php, VIEW_COMPILED_PATH=/tmp/views, LOG_CHANNEL=stderr, CACHE_STORE=array, SESSION_DRIVER=array). Safe defaults apply automatically if left blank.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens)
 
 </div>
 
