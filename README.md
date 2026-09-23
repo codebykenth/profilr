@@ -6,7 +6,7 @@
 
 Stats • Languages • Streak • Profile • Pinned Repos
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodebykenth%2Fprofilr&project-name=profilr&repository-name=profilr&env=GITHUB_TOKEN,APP_ENV,APP_DEBUG,APP_CONFIG_CACHE,APP_EVENTS_CACHE,APP_PACKAGES_CACHE,APP_ROUTES_CACHE,APP_SERVICES_CACHE,VIEW_COMPILED_PATH,LOG_CHANNEL,CACHE_STORE,SESSION_DRIVER&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token. The other variables are runtime defaults for self-hosting (APP_ENV=production, APP_DEBUG=false, APP_CONFIG_CACHE=/tmp/config.php, APP_EVENTS_CACHE=/tmp/events.php, APP_PACKAGES_CACHE=/tmp/packages.php, APP_ROUTES_CACHE=/tmp/routes.php, APP_SERVICES_CACHE=/tmp/services.php, VIEW_COMPILED_PATH=/tmp/views, LOG_CHANNEL=stderr, CACHE_STORE=array, SESSION_DRIVER=array). Safe defaults apply automatically if left blank.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodebykenth%2Fprofilr&project-name=profilr&repository-name=profilr&env=GITHUB_TOKEN&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read%3Auser%2Crepo%20scopes)%20to%20enable%20stats%20fetching.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens)
 
 </div>
 
@@ -32,15 +32,13 @@ Profilr is an open-source tool that generates dynamic, customizable SVG widgets 
 ### Option A — Deploy button (recommended, creates the repo for you)
 1. Click **Deploy with Vercel** above.
 2. Vercel shows **Create Git Repository** — pick a name and choose **Private** or **Public**, then **Create**. This clones the template into your GitHub account automatically. (This is how you get a private copy — you don't pre-create it.)
-3. When prompted for env vars, fill in both:
+3. When prompted for env vars, fill in the only one:
 
 | Variable | Required | How to get it |
 |----------|----------|---------------|
 | `GITHUB_TOKEN` | ✅ | Your [GitHub Personal Access Token](https://github.com/settings/tokens) — scopes `read:user` (public data) + `repo` (private repo stats) |
 
-That's the only input. `APP_KEY` is derived automatically per deployment (stable SHA-256 of your token — the app is stateless, so there's nothing sensitive to encrypt; override it in the dashboard if you want hardening).
-
-Then, in your new Vercel project go to **Settings → Environment Variables** and add `ENABLE_API=true` (the Deploy button can only prompt for secrets, not fixed flags — and Vercel ignores the legacy `env` block in `vercel.json`, so this step is mandatory), then **Redeploy**. Forks are **API-only** by design (`ENABLE_UI` defaults to `false`) — the landing page stays on the main instance. Runtime-safe defaults (`/tmp` view path, `array` cache/session, `stderr` logs) are automatic on Vercel, so no other vars are needed.
+That's the only input. Every other environment variable is set automatically when the app boots on Vercel (`bootstrap/app.php`): the `/tmp` cache paths, `array` cache/session drivers, `stderr` logging, `ENABLE_API=true`, and `APP_KEY` (derived per deployment as a stable SHA-256 of your token — the app is stateless, so there's nothing sensitive to encrypt; override it in the dashboard if you want hardening). Forks are **API-only** by design (`ENABLE_UI` stays off) — the landing page stays on the main instance. Nothing else needs configuring.
 
 ### Option B — Fork first, then import
 1. Click **Fork** (top right) to copy the repo to your account (choose Private there if you want).

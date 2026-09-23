@@ -10,8 +10,9 @@ use Illuminate\Http\Request;
 // APP_CONFIG_CACHE-style paths, array drivers, or stderr logging unless the
 // user adds every var manually in the dashboard. Default the purely
 // runtime-safe values here when running on Vercel (Vercel always sets
-// VERCEL=1); GITHUB_TOKEN and ENABLE_API must still come from the
-// dashboard — APP_KEY is derived automatically below when missing.
+// VERCEL=1) so a one-click deploy only needs GITHUB_TOKEN (and optionally
+// ENABLE_UI=true on the main instance); APP_KEY is derived automatically
+// below when missing.
 if (getenv('VERCEL')) {
     foreach ([
         'VIEW_COMPILED_PATH' => '/tmp/views',

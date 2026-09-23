@@ -749,7 +749,7 @@
                                             This will automatically fork the repository to your GitHub account and initiate a new Vercel project deployment with predefined settings.
                                         </div>
                                         <div class="deploy-step-actions">
-                                            <a href="https://vercel.com/new/clone?repository-url={{ urlencode($repoUrl) }}&project-name=profilr&repository-name=profilr&env=GITHUB_TOKEN,APP_ENV,APP_DEBUG,APP_CONFIG_CACHE,APP_EVENTS_CACHE,APP_PACKAGES_CACHE,APP_ROUTES_CACHE,APP_SERVICES_CACHE,VIEW_COMPILED_PATH,LOG_CHANNEL,CACHE_STORE,SESSION_DRIVER&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read%3Auser%2Crepo%20scopes).%20The%20other%20variables%20are%20runtime%20defaults%20to%20make%20your%20deployment%20self-hosted%20(APP_ENV%3Dproduction%2C%20APP_DEBUG%3Dfalse%2C%20APP_CONFIG_CACHE%3D%2Ftmp%2Fconfig.php%2C%20APP_EVENTS_CACHE%3D%2Ftmp%2Fevents.php%2C%20APP_PACKAGES_CACHE%3D%2Ftmp%2Fpackages.php%2C%20APP_ROUTES_CACHE%3D%2Ftmp%2Froutes.php%2C%20APP_SERVICES_CACHE%3D%2Ftmp%2Fservices.php%2C%20VIEW_COMPILED_PATH%3D%2Ftmp%2Fviews%2C%20LOG_CHANNEL%3Dstderr%2C%20CACHE_STORE%3Darray%2C%20SESSION_DRIVER%3Darray).%20Safe%20defaults%20are%20applied%20automatically%20if%20left%20blank.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                                            <a href="https://vercel.com/new/clone?repository-url={{ urlencode($repoUrl) }}&project-name=profilr&repository-name=profilr&env=GITHUB_TOKEN&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read%3Auser%2Crepo%20scopes)%20to%20enable%20stats%20fetching.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
                                                 ▲ Deploy to Vercel &rarr;
                                             </a>
                                         </div>
@@ -761,7 +761,7 @@
                                     <div class="deploy-step-content">
                                         <div class="deploy-step-heading">Provide Your GitHub Token</div>
                                         <div class="deploy-step-desc">
-                                            Vercel will first ask you to <strong>Create a Git Repository</strong> (pick Private or Public) — this clones the template for you. Don't pre-create an empty repo and import it via <code>vercel.com/new</code>; that flow only works for repos that already exist. When prompted, paste your GitHub PAT (with <code>read:user</code> and <code>repo</code> scopes) from <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="link-inline">github.com/settings/tokens</a> as <code>GITHUB_TOKEN</code> — that's the only input needed (<code>APP_KEY</code> is derived automatically per deployment). Afterwards, go to <strong>Settings → Environment Variables</strong> in your Vercel project, add <code>ENABLE_API=true</code> (Vercel ignores the legacy <code>env</code> block in <code>vercel.json</code>, so this manual step is mandatory), then <strong>Redeploy</strong>. Forks are API-only by design (<code>ENABLE_UI</code> stays off).
+                                            Vercel will first ask you to <strong>Create a Git Repository</strong> (pick Private or Public) — this clones the template for you. Don't pre-create an empty repo and import it via <code>vercel.com/new</code>; that flow only works for repos that already exist. When prompted, paste your GitHub PAT (with <code>read:user</code> and <code>repo</code> scopes) from <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="link-inline">github.com/settings/tokens</a> as <code>GITHUB_TOKEN</code> — that's the only input needed. Every other environment variable is set automatically when the app boots (the <code>/tmp</code> cache paths, array cache/session drivers, stderr logs, <code>APP_KEY</code> derivation, and <code>ENABLE_API=true</code> — see <code>bootstrap/app.php</code>), so there's nothing else to configure. Forks are API-only by design (<code>ENABLE_UI</code> stays off).
                                         </div>
                                     </div>
                                 </div>
@@ -805,7 +805,7 @@
                             @if ($apiEnabled)
                                 — and this instance has the API enabled, so widgets will route through your token once the URL above is connected.
                             @else
-                                and requires <code>ENABLE_API=true</code> on that deployment. In community mode widgets ignore the token entirely and load from public CDNs using just your username.
+                                — your fork enables the API automatically at boot (check <code>bootstrap/app.php</code> for the default). In community mode widgets ignore the token entirely and load from public CDNs using just your username.
                             @endif
                         </div>
                     </div>
