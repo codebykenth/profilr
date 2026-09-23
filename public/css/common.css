@@ -25,6 +25,10 @@
     --accent-hover: #16a34a;
     --accent-fg: #ffffff;
 
+    --success: #34d399;
+    --success-bg: rgba(52, 211, 153, 0.15);
+    --success-fg: #040910;
+
     --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 8px;

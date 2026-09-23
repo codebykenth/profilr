@@ -35,20 +35,12 @@
             <button type="button" class="btn btn-primary btn-sm" id="copy-btn-header" onclick="copyFullReadme(this)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
             </button>
-            <div class="header-action-menu">
-                <button type="button" class="icon-btn" id="more-actions-btn" onclick="toggleHeaderMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="More actions" title="More actions">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2.4"/><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="19" r="2.4"/></svg>
-                </button>
-                <div class="header-action-dropdown" id="header-action-dropdown">
-                    <button type="button" class="menu-item" onclick="downloadReadme()">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download .md
-                    </button>
-                    <div class="menu-divider"></div>
-                    <button type="button" class="menu-item danger" onclick="resetWorkspacePrompt()">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Reset workspace
-                    </button>
-                </div>
-            </div>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="downloadReadme()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download .md
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" onclick="resetWorkspacePrompt()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Reset
+            </button>
         </div>
     </header>
 
@@ -762,7 +754,7 @@
                                     <div class="deploy-step-content">
                                         <div class="deploy-step-heading">Provide Your GitHub Token</div>
                                         <div class="deploy-step-desc">
-                                            Vercel will first ask you to <strong>Create a Git Repository</strong> (pick Private or Public) — this clones the template for you. Don't pre-create an empty repo and import it via <code>vercel.com/new</code>; that flow only works for repos that already exist. When prompted, paste your GitHub PAT (with <code>read:user</code> and <code>repo</code> scopes) from <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="link-inline">github.com/settings/tokens</a> as <code>GITHUB_TOKEN</code> — that's the only input needed. Every other environment variable is set automatically when the app boots (the <code>/tmp</code> cache paths, array cache/session drivers, stderr logs, <code>APP_KEY</code> derivation, and <code>ENABLE_API=true</code> — see <code>bootstrap/app.php</code>), so there's nothing else to configure. Forks are API-only by design (<code>ENABLE_UI</code> stays off).
+                                            Vercel will first ask you to <strong>Create a Git Repository</strong> (pick Private or Public) — this clones the template for you. Don't pre-create an empty repo and import it via <code>vercel.com/new</code>; that flow only works for repos that already exist. When prompted, paste your GitHub PAT (with <code>read:user</code> and <code>repo</code> scopes) from <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="link-inline">github.com/settings/tokens</a> as <code>GITHUB_TOKEN</code> — that's the only input needed.
                                         </div>
                                     </div>
                                 </div>
@@ -3023,38 +3015,6 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
-
-        // Header "more actions" dropdown + step-nav scroll controls
-        function toggleHeaderMenu(event) {
-            if (event) event.stopPropagation();
-            const menu = document.getElementById('header-action-dropdown');
-            const btn = document.getElementById('more-actions-btn');
-            if (!menu) return;
-            const open = menu.classList.toggle('open');
-            if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        }
-
-        document.addEventListener('click', (e) => {
-            const menu = document.getElementById('header-action-dropdown');
-            const btn = document.getElementById('more-actions-btn');
-            if (!menu && !btn) return;
-            if (btn && btn.contains(e.target)) return;
-            if (menu && menu.classList.contains('open')) {
-                menu.classList.remove('open');
-                if (btn) btn.setAttribute('aria-expanded', 'false');
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const menu = document.getElementById('header-action-dropdown');
-                const btn = document.getElementById('more-actions-btn');
-                if (menu && menu.classList.contains('open')) {
-                    menu.classList.remove('open');
-                    if (btn) btn.setAttribute('aria-expanded', 'false');
-                }
-            }
-        });
 
         function scrollStepNav(direction) {
             const bar = document.getElementById('step-nav-bar');
