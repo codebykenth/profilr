@@ -6,7 +6,7 @@
 
 Stats • Languages • Streak • Profile • Pinned Repos
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodebykenth%2Fprofilr&env=GITHUB_TOKEN&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read%3Auser%2Crepo%20scopes)%20to%20enable%20stats%20fetching.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodebykenth%2Fprofilr&project-name=profilr&repository-name=profilr&env=GITHUB_TOKEN&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read%3Auser%2Crepo%20scopes)%20to%20enable%20stats%20fetching.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens)
 
 </div>
 
@@ -27,19 +27,25 @@ Profilr is an open-source tool that generates dynamic, customizable SVG widgets 
 
 ## ⚡ Quick Start (3 Steps)
 
-### 1. Fork this repository
-Click the **Fork** button at the top right of this repository to create your own copy.
+> **Pick ONE path — don't mix them.** Going to [vercel.com/new](https://vercel.com/new) and typing a repo name that doesn't exist on GitHub yet will fail. Either let Vercel clone for you (Option A), or fork first and then import (Option B).
 
-### 2. Deploy to Vercel
-1. Click **Deploy with Vercel** above or go to [vercel.com/new](https://vercel.com/new)
-2. Import your forked repository
-3. Add the following environment variable when prompted (all others like `ENABLE_API` are pre-filled via `vercel.json`):
+### Option A — Deploy button (recommended, creates the repo for you)
+1. Click **Deploy with Vercel** above.
+2. Vercel shows **Create Git Repository** — pick a name and choose **Private** or **Public**, then **Create**. This clones the template into your GitHub account automatically. (This is how you get a private copy — you don't pre-create it.)
+3. When prompted for env vars, fill in both:
 
-| Variable | Value | Required | Description |
-|----------|-------|----------|-------------|
-| `GITHUB_TOKEN` | Your [GitHub Personal Access Token](https://github.com/settings/tokens) | ✅ | Authenticates GraphQL requests for stats |
+| Variable | Required | How to get it |
+|----------|----------|---------------|
+| `GITHUB_TOKEN` | ✅ | Your [GitHub Personal Access Token](https://github.com/settings/tokens) — scopes `read:user` (public data) + `repo` (private repo stats) |
 
-> **Token scopes needed:** `read:user` (public data) and optionally `repo` (for private repo stats)
+That's the only input. `APP_KEY` is derived automatically per deployment (stable SHA-256 of your token — the app is stateless, so there's nothing sensitive to encrypt; override it in the dashboard if you want hardening).
+
+Then, in your new Vercel project go to **Settings → Environment Variables** and add `ENABLE_API=true` (the Deploy button can only prompt for secrets, not fixed flags — and Vercel ignores the legacy `env` block in `vercel.json`, so this step is mandatory), then **Redeploy**. Forks are **API-only** by design (`ENABLE_UI` defaults to `false`) — the landing page stays on the main instance. Runtime-safe defaults (`/tmp` view path, `array` cache/session, `stderr` logs) are automatic on Vercel, so no other vars are needed.
+
+### Option B — Fork first, then import
+1. Click **Fork** (top right) to copy the repo to your account (choose Private there if you want).
+2. Go to [vercel.com/new](https://vercel.com/new) → **Import** your fork (it must already exist on GitHub).
+3. Add `GITHUB_TOKEN` + `APP_KEY` (same as above) and deploy.
 
 ### 3. Use in your README
 Once deployed, embed widgets in your GitHub profile README using `<img>` tags:

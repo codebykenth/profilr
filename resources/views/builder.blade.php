@@ -749,7 +749,7 @@
                                             This will automatically fork the repository to your GitHub account and initiate a new Vercel project deployment with predefined settings.
                                         </div>
                                         <div class="deploy-step-actions">
-                                            <a href="https://vercel.com/new/clone?repository-url={{ urlencode($repoUrl) }}&env=GITHUB_TOKEN&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read:user,repo%20scopes)%20to%20enable%20stats%20fetching." target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                                            <a href="https://vercel.com/new/clone?repository-url={{ urlencode($repoUrl) }}&project-name=profilr&repository-name=profilr&env=GITHUB_TOKEN&envDescription=Enter%20your%20GitHub%20Personal%20Access%20Token%20(requires%20read%3Auser%2Crepo%20scopes)%20to%20enable%20stats%20fetching.&envLink=https%3A%2F%2Fgithub.com%2Fsettings%2Ftokens" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
                                                 ▲ Deploy to Vercel &rarr;
                                             </a>
                                         </div>
@@ -761,7 +761,7 @@
                                     <div class="deploy-step-content">
                                         <div class="deploy-step-heading">Provide Your GitHub Token</div>
                                         <div class="deploy-step-desc">
-                                            During the Vercel import process, you'll be prompted for a <code>GITHUB_TOKEN</code>. Paste your GitHub PAT (with <code>read:user</code> and <code>repo</code> scopes) from <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="link-inline">github.com/settings/tokens</a>. All other environment variables like <code>APP_KEY</code> and <code>ENABLE_API</code> are pre-filled automatically!
+                                            Vercel will first ask you to <strong>Create a Git Repository</strong> (pick Private or Public) — this clones the template for you. Don't pre-create an empty repo and import it via <code>vercel.com/new</code>; that flow only works for repos that already exist. When prompted, paste your GitHub PAT (with <code>read:user</code> and <code>repo</code> scopes) from <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="link-inline">github.com/settings/tokens</a> as <code>GITHUB_TOKEN</code> — that's the only input needed (<code>APP_KEY</code> is derived automatically per deployment). Afterwards, go to <strong>Settings → Environment Variables</strong> in your Vercel project, add <code>ENABLE_API=true</code> (Vercel ignores the legacy <code>env</code> block in <code>vercel.json</code>, so this manual step is mandatory), then <strong>Redeploy</strong>. Forks are API-only by design (<code>ENABLE_UI</code> stays off).
                                         </div>
                                     </div>
                                 </div>
@@ -993,15 +993,25 @@
             'minimal-rect': { name: 'Carbon Rect', type: 'rect', color: '0:18181b,100:3f3f46', fontColor: 'ffffff' }
         };
 
+        // Capsule-render interpolates text raw into its SVG, so XML metachars
+        // (&, <, >) produce malformed XML and a broken <img>. Pre-escape them
+        // as entities; the SVG parser resolves them back to the original chars.
+        function escapeCapsuleText(value) {
+            return (value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
         function getEffectiveBannerUrl() {
             if (state.bannerMode === 'none') return '';
             if (state.bannerMode === 'custom') return state.bannerCustomUrl.trim();
 
             const preset = bannerPresets[state.bannerPreset] || bannerPresets['waving-gradient'];
             const user = state.username || 'your-username';
-            const name = state.bannerText.trim() || state.displayName.trim() || user;
+            const name = escapeCapsuleText(state.bannerText.trim() || state.displayName.trim() || user);
             const fontColor = preset.fontColor || 'ffffff';
-            const descParam = state.bannerDesc.trim() ? `&desc=${encodeURIComponent(state.bannerDesc.trim())}&descAlign=center&descAlignY=62&descColor=${fontColor}` : '';
+            const descParam = state.bannerDesc.trim() ? `&desc=${encodeURIComponent(escapeCapsuleText(state.bannerDesc.trim()))}&descAlign=center&descAlignY=62&descColor=${fontColor}` : '';
             const animParam = state.bannerAnimation && state.bannerAnimation !== 'none' ? `&animation=${state.bannerAnimation}` : '';
 
             return `https://capsule-render.vercel.app/api?type=${preset.type}&color=${preset.color}&height=${state.bannerHeight}&section=header&text=${encodeURIComponent(name)}&fontSize=42&fontColor=${fontColor}${descParam}${animParam}`;
