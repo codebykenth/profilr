@@ -54,7 +54,7 @@
                         </p>
                         <div style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
                             <img src="https://github-stats-extended.vercel.app/api?username=torvalds&amp;show_icons=true&amp;theme=radical&amp;locale=en" alt="GitHub Stats" style="max-width: 100%;" />
-                            <img src="https://github-stats-extended.vercel.app/api/top-langs/?username=torvalds&amp;layout=compact&amp;theme=radical" alt="Top Languages" style="max-width: 100%;" />
+                            <img src="https://github-stats-extended.vercel.app/api/top-langs/?username=torvalds&amp;layout=compact&amp;theme=radical&amp;langs_count=8" alt="Top Languages" style="max-width: 100%;" />
                         </div>
                     </div>
                 </div>

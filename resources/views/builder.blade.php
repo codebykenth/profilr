@@ -1107,7 +1107,7 @@
                 return `https://github-stats-extended.vercel.app/api?username=${user}&show_icons=true&theme=${theme}&locale=en`;
             }
             if (key === 'languages') {
-                return `https://github-stats-extended.vercel.app/api/top-langs/?username=${user}&layout=compact&theme=${theme}`;
+                return `https://github-stats-extended.vercel.app/api/top-langs/?username=${user}&layout=compact&theme=${theme}&langs_count=8`;
             }
             if (key === 'streak') {
                 return `https://streak-stats.demolab.com?user=${user}&theme=${theme}`;
@@ -2870,7 +2870,7 @@
                     analyticsHtml += `<p style="text-align: center;"><img src="${getWidgetUrl('stats')}" alt="Stats" style="max-width: 100%; height: auto; display: block; margin: 0 auto 12px;" onerror="this.src='https://github-stats-extended.vercel.app/api?username=torvalds&show_icons=true&theme=${encodeURIComponent(state.theme || 'light')}&locale=en'; this.onerror=null;" /></p>`;
                 }
                 if (state.widgets.languages) {
-                    analyticsHtml += `<p style="text-align: center;"><img src="${getWidgetUrl('languages')}" alt="Languages" style="max-width: 100%; height: auto; display: block; margin: 0 auto 12px;" onerror="this.src='https://github-stats-extended.vercel.app/api/top-langs/?username=torvalds&layout=compact&theme=${encodeURIComponent(state.theme || 'light')}'; this.onerror=null;" /></p>`;
+                    analyticsHtml += `<p style="text-align: center;"><img src="${getWidgetUrl('languages')}" alt="Languages" style="max-width: 100%; height: auto; display: block; margin: 0 auto 12px;" onerror="this.src='https://github-stats-extended.vercel.app/api/top-langs/?username=torvalds&layout=compact&theme=${encodeURIComponent(state.theme || 'light')}&langs_count=8'; this.onerror=null;" /></p>`;
                 }
                 if (state.widgets.streak) {
                     analyticsHtml += `<p style="text-align: center;"><img src="${getWidgetUrl('streak')}" alt="Streak" style="max-width: 100%; height: auto;" /></p>`;

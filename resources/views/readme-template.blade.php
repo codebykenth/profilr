@@ -234,7 +234,7 @@
   <img src="https://github-stats-extended.vercel.app/api?username={{ $username }}&show_icons=true&theme={{ $theme }}&locale=en" alt="GitHub Stats" />
 @endif
 @if ($showLanguages)
-  <img src="https://github-stats-extended.vercel.app/api/top-langs/?username={{ $username }}&layout=compact&theme={{ $theme }}" alt="Top Languages" />
+  <img src="https://github-stats-extended.vercel.app/api/top-langs/?username={{ $username }}&layout=compact&theme={{ $theme }}&langs_count=8" alt="Top Languages" />
 @endif
 </p>
 @endif
